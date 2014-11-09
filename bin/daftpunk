@@ -14,10 +14,6 @@ class Daftpunk(object):
         self.backend = backend
         self.config = self.parse_args(args)
 
-    def run(self):
-        if self.config.command in self.COMMANDS:
-            self.COMMANDS[self.config.command](self, *self.config.args)
-
     def parse_args(self, argv):
         """For parsing CLI arguements."""
         parser = ArgumentParser(

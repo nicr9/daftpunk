@@ -35,8 +35,13 @@ class DaftMeta(type):
                     handlers[key] = value
 
         cdict['COMMANDS'] = handlers
+        cdict['run'] = handle_command
 
         return super(DaftMeta, mcls).__new__(mcls, name, bases, cdict)
+
+def handle_command(self):
+    if self.config.command in self.COMMANDS:
+        self.COMMANDS[self.config.command](self, *self.config.args)
 
 def daftcommand(func):
     setattr(func, '__daftpunk__', None)
