@@ -124,7 +124,9 @@ class DaftProperty(object):
                 )
 
         for key, val in self.data.iteritems():
-            if isinstance(val, basestring):
+            if isinstance(val, basestring) or \
+                    isinstance(val, int) or \
+                    isinstance(val, float):
                 r.set(
                         "%s:%s" % (self.prop_id, key),
                         val
@@ -142,4 +144,4 @@ class DaftProperty(object):
                             elem
                             )
             else:
-                print "Had trouble exporting %s:%s:%s" % (prop_id, key, val)
+                print "Couldn't export %s:%s:%s" % (self.prop_id, key, val)
