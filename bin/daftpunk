@@ -1,6 +1,6 @@
 #! /usr/bin/env python2.7
 from daftpunk.daft import DaftProperty
-from daftpunk import REDIS_CONFIG, DaftMeta, DaftMeta, daftcommand
+from daftpunk import *
 from redis import StrictRedis
 from sys import argv
 from argparse import ArgumentParser, RawTextHelpFormatter
@@ -44,6 +44,18 @@ class Daftpunk(object):
     def add(self, url):
         prop = DaftProperty.from_url(url)
         prop.export(self.backend)
+
+    @daftcommand
+    def geocode(self):
+        prop_ids = self.backend.smembers(PROPERTIES)
+        props = [DaftProperty.from_redis(self.backend, prop_id) for prop_id
+                in prop_ids]
+
+        from time import sleep
+        for prop in props:
+            prop.run_geocode(True)
+            prop.export(r)
+            sleep(0.2)
 
 if __name__ == "__main__":
     r = StrictRedis(**REDIS_CONFIG)
