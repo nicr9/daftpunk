@@ -23,3 +23,21 @@ BER_RATINGS = [
         'ber-A2',
         'ber-A1',
         ]
+
+class DaftMeta(type):
+    def __new__(mcls, name, bases, cdict):
+        handlers = {}
+
+        ignored = set(['__module__', '__metaclass__', '__doc__'])
+        for key, value in cdict.items():
+            if key not in ignored:
+                if hasattr(value, '__daftpunk__'):
+                    handlers[key] = value
+
+        cdict['COMMANDS'] = handlers
+
+        return super(DaftMeta, mcls).__new__(mcls, name, bases, cdict)
+
+def daftcommand(func):
+    setattr(func, '__daftpunk__', None)
+    return func
