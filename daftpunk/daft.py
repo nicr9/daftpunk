@@ -51,7 +51,7 @@ class DaftProperty(object):
         return temp
 
     def is_geocoded(self):
-        geocoded = 'lat' in self.data and 'long' in self.data
+        geocoded = u'lat' in self.data and u'lng' in self.data
         return geocoded
 
     def run_geocode(self, verbose=False):
