@@ -5,6 +5,7 @@ from re import match
 from re import sub as re_sub
 from json import dump as json_dump
 from daftpunk import GEOCODE_API, PROPERTIES, BER_RATINGS
+from pykml.factory import KML_ElementMaker as KML
 
 class DaftProperty(object):
     def __init__(self, prop_id, data):
@@ -69,6 +70,31 @@ class DaftProperty(object):
 
             lat_long = results[0]['geometry']['location']
             self.data.update(lat_long)
+
+    def coords(self):
+        if self.is_geocoded():
+            return float(self.data['lat']), float(self.data['lng'])
+
+    def description(self):
+        ignored_keys = {'host', 'path', 'currency', 'ber_score'}
+        description = []
+
+        for key, val in self.data.iteritems():
+            if key not in ignored_keys:
+                description.append("%s: %s" % (key, val))
+
+        return '\n'.join(description)
+
+    def kml_elem(self):
+        return KML.Placemark(
+                KML.name(self.data['address']),
+                KML.Point(
+                    KML.coordinates(
+                        ','.join([self.data['lng'], self.data['lat']])
+                        )
+                    ),
+                KML.description(self.description()),
+                )
 
     @staticmethod
     def strip_from_path(path):

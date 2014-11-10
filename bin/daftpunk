@@ -4,6 +4,7 @@ from daftpunk import *
 from redis import StrictRedis
 from sys import argv
 from argparse import ArgumentParser, RawTextHelpFormatter
+from pykml.factory import KML_ElementMaker as KML
 
 class Daftpunk(object):
     __metaclass__ = DaftMeta
@@ -56,6 +57,32 @@ class Daftpunk(object):
             prop.run_geocode(True)
             prop.export(r)
             sleep(0.2)
+
+    def properties_key(self, name=''):
+        return "%s:%s" % (PROPERTIES, name) if name else PROPERTIES
+
+    def get_properties(self, name=''):
+        key = self.properties_key(name)
+        prop_ids = self.backend.smembers(key)
+        return [DaftProperty.from_redis(self.backend, prop_id) for prop_id
+                in prop_ids]
+
+    def get_kml_file_name(self, name):
+        key = self.properties_key(name)
+        return "%s.kml" % key.replace(':', '_')
+
+    @daftcommand
+    def map(self, name=''):
+        file_name = self.get_kml_file_name(name)
+        props = self.get_properties(name)
+
+        kml = [prop.kml_elem() for prop in props]
+        folder = KML.Folder(*kml)
+        with open(file_name, 'w') as outp:
+            from lxml import etree
+            outp.write(etree.tostring(folder))
+
+        print file_name
 
 if __name__ == "__main__":
     r = StrictRedis(**REDIS_CONFIG)
