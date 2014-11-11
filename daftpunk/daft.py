@@ -123,13 +123,15 @@ class DaftProperty(object):
         ber_score = BER_RATINGS.index(ber_rating)
 
         # Phone Numbers
-        phone_strs = soup.find(**{'class':"phone1"}).text.split()
-        phone_strs = [re_sub('[+()]', '', z) for z in phone_strs]
         phones = set()
-        for i in reversed(range(len(phone_strs))):
-            if not phone_strs[i].isdigit():
-                phones.add('-'.join(phone_strs[i+1:]))
-                phone_strs = phone_strs[:i]
+        phone_class = soup.find(**{'class':"phone1"})
+        if phone_class:
+            phone_strs = phone_class.text.split()
+            phone_strs = [re_sub('[+()]', '', z) for z in phone_strs]
+            for i in reversed(range(len(phone_strs))):
+                if not phone_strs[i].isdigit():
+                    phones.add('-'.join(phone_strs[i+1:]))
+                    phone_strs = phone_strs[:i]
 
         # Address
         address = soup.find(id="address_box").h1.text
