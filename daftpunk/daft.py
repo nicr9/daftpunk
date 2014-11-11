@@ -80,7 +80,7 @@ class DaftProperty(object):
             return float(self.data['lat']), float(self.data['lng'])
 
     def description(self):
-        ignored_keys = {'host', 'path', 'currency', 'ber_score'}
+        ignored_keys = {'url', 'host', 'path', 'currency', 'ber_score'}
         description = []
 
         for key, val in self.data.iteritems():
