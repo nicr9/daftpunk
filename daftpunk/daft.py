@@ -6,6 +6,7 @@ from re import sub as re_sub
 from json import dump as json_dump
 from daftpunk import GEOCODE_API, PROPERTIES, BER_RATINGS
 from pykml.factory import KML_ElementMaker as KML
+from sys import stdout
 
 class DaftProperty(object):
     def __init__(self, prop_id, data):
@@ -13,7 +14,7 @@ class DaftProperty(object):
         self.data = data
 
     @classmethod
-    def from_url(cls, url):
+    def from_url(cls, url, verbose=False):
         split_results = urlsplit(url)
 
         path = split_results.path
@@ -29,6 +30,9 @@ class DaftProperty(object):
 
         if prop_id:
             temp = cls(prop_id, data)
+            if verbose:
+                stdout.write("Scraping: %s\r" % prop_id)
+                stdout.flush()
             temp.scrape()
 
             return temp
