@@ -1,6 +1,6 @@
 from requests import get as req_get
 from bs4 import BeautifulSoup
-from urlparse import urlsplit
+from urlparse import urlsplit, urljoin
 from re import match
 from re import sub as re_sub
 from json import dump as json_dump
@@ -177,3 +177,53 @@ class DaftProperty(object):
                             )
             else:
                 print "Couldn't export %s:%s:%s" % (self.prop_id, key, val)
+
+class DaftSearch(object):
+    def __init__(self, name):
+        self.name = name
+        self.properties = []
+
+    def run(self, search_url):
+        self.host = urlsplit(search_url).netloc
+        urls = self.find_properties(search_url)
+
+        self.properties = [DaftProperty.from_url(url, True) for url in urls]
+        print
+
+    def export(self, backend):
+        total = len(self.properties)
+        for i, prop in enumerate(self.properties):
+            to_go = total - i
+            stdout.write("Exporting: %s, %d to go\r" % (prop.prop_id, to_go))
+            stdout.flush()
+            prop.export(backend)
+
+        print
+
+    def find_properties(self, search_url):
+        next_page = search_url
+        properties = []
+        while True:
+            req = req_get(next_page)
+            soup = BeautifulSoup(req.text)
+            properties.extend(self.scrape_properties(soup))
+
+            try:
+                href = soup.find(**{'class': "next_page"}).a['href']
+            except:
+                break
+            next_page = self.reletive_url(href)
+            stdout.write("Found %d properties so far\r" % len(properties))
+            stdout.flush()
+
+        print
+        return properties
+
+    def reletive_url(self, href):
+        return urljoin("http://%s" % self.host, href)
+
+    def scrape_properties(self, soup):
+        counters = soup.find_all(**{'class': "sr_counter"})
+        hrefs = [counter.parent.a['href'] for counter in counters]
+
+        return [self.reletive_url(href) for href in hrefs]

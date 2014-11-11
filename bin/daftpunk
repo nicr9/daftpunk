@@ -1,5 +1,5 @@
 #! /usr/bin/env python2.7
-from daftpunk.daft import DaftProperty
+from daftpunk.daft import DaftProperty, DaftSearch
 from daftpunk import *
 from redis import StrictRedis
 from sys import argv
@@ -83,6 +83,13 @@ class Daftpunk(object):
             outp.write(etree.tostring(folder))
 
         print file_name
+
+    @daftcommand
+    def search(self, name):
+        search = DaftSearch(name)
+        url = raw_input("Please perform a search and enter the url: ")
+        search.run(url)
+        search.export(self.backend)
 
 if __name__ == "__main__":
     r = StrictRedis(**REDIS_CONFIG)
