@@ -49,7 +49,7 @@ class DpScraper(object):
 
     def process_url(self, url):
         # Get prop_id
-        url_match = search("/(\d*)/?", url)
+        url_match = search("/(\d*)/?$", url)
         prop_id = url_match.group(1)
 
         # Get prop_html
@@ -63,8 +63,8 @@ class DpScraper(object):
 
         for query in self.config['queries']:
             for url in self.find_properties(query):
+                print url
                 message = self.process_url(url)
-                print message
                 channel.basic_publish(
                         exchange='',
                         routing_key=RABBIT_QUEUE,
