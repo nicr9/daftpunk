@@ -16,7 +16,7 @@ sudo service rabbitmq-server restart
 
 Then install python plugins:
 ```
-sudo pip install pika requests beautifulsoup4
+sudo pip install pika requests beautifulsoup4 redis
 ```
 
 ## Proposed redis schema

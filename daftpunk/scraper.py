@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from pika import BlockingConnection, ConnectionParameters
 from re import search
 from json import dumps as json_dumps
+from time import time
 
 RABBIT_QUEUE = 'daftpunk'
 
@@ -40,12 +41,10 @@ class DpScraper(object):
 
         return properties
 
-    def open_channel(self):
+    def rabbit_connect(self):
         conn = BlockingConnection(ConnectionParameters('localhost'))
-        channel = conn.channel()
-        channel.queue_declare(queue=RABBIT_QUEUE)
-
-        return channel
+        self.rabbit = conn.channel()
+        self.rabbit.queue_declare(queue=RABBIT_QUEUE)
 
     def process_url(self, url):
         # Get prop_id
@@ -56,22 +55,23 @@ class DpScraper(object):
         resp = req_get(url)
         prop_html = resp.text
 
-        return json_dumps([prop_id, prop_html])
+        timestamp = time()
+        return json_dumps([prop_id, timestamp, prop_html])
 
     def run(self):
-        channel = self.open_channel()
+        self.rabbit_connect()
 
         for query in self.config['queries']:
             for url in self.find_properties(query):
                 print url
                 message = self.process_url(url)
-                channel.basic_publish(
+                self.rabbit.basic_publish(
                         exchange='',
                         routing_key=RABBIT_QUEUE,
                         body=message,
                         )
 
-        channel.close()
+        self.rabbit.close()
 
 if __name__ == "__main__":
     config = {

@@ -12,6 +12,9 @@ setup(
         scripts = ['bin/daftpunk'],
         install_requires=[
             'pika',
+            'requests',
+            'beautifulsoup4',
+            'redis',
             ],
         license='MIT',
         )

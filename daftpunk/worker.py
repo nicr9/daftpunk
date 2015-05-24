@@ -1,5 +1,7 @@
 from pika import BlockingConnection, ConnectionParameters
 from json import loads as json_loads
+from redis import StrictRedis
+from functools import partial
 
 RABBIT_QUEUE = 'daftpunk'
 
@@ -8,35 +10,46 @@ class DpWorker(object):
         self.config = config
         self.run()
 
-    def open_channel(self):
+    def rabbit_connect(self, callback):
         conn = BlockingConnection(ConnectionParameters('localhost'))
-        channel = conn.channel()
-        channel.queue_declare(queue=RABBIT_QUEUE)
-
-        return channel
-
-    def process_message(self, body):
-        prop = {}
-        message = json_loads(body)
-        prop['id'], prop['html'] = message
-
-        return prop
-
-    def run(self):
-        channel = self.open_channel()
-
-        def callback(ch, method, properties, body):
-            prop = self.process_message(body)
-            print " [x] Received %r" % (prop['id'],)
-
-        channel.basic_consume(
+        self.rabbit = conn.channel()
+        self.rabbit.queue_declare(queue=RABBIT_QUEUE)
+        self.rabbit.basic_consume(
                 callback,
                 queue=RABBIT_QUEUE,
                 no_ack=True
                 )
 
+
+        print "connected"
+
+    def run(self):
+        def callback(parser, ch, method, properties, msg):
+            prop_id = parser.process_message(msg)
+            print " [x] Processed %s" % (prop_id,)
+
+        parser = DpParser(self.config)
+        self.rabbit_connect(partial(callback, parser))
+
         print ' [*] Waiting for messages. To exit press CTRL+C'
-        channel.start_consuming()
+        self.rabbit.start_consuming()
+
+class DpParser(object):
+    def __init__(self, config):
+        self.config = config
+        self.redis = StrictRedis(host='localhost', port=6379, db=0)
+
+    def process_message(self, body):
+        prop = {}
+        message = json_loads(body)
+        id_, timestamp, html = message
+
+        # Send message contents to redis
+        self.redis.sadd('daftpunk:properties', id_)
+        self.redis.rpush('daftpunk:%s:timestamps' % id_, timestamp)
+        self.redis.set('daftpunk:%s:html' % id_, html)
+
+        return id_
 
 if __name__ == "__main__":
     x = DpWorker({})
