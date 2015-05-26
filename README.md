@@ -14,6 +14,15 @@ sudo rabbitmq-plugins enable rabbitmq_management
 sudo service rabbitmq-server restart
 ```
 
+Next up, install redis:
+```
+wget http://download.redis.io/redis-stable.tar.gz
+tar xvzf redis-stable.tar.gz
+cd redis-stable
+make
+sudo make install
+```
+
 Then install python plugins:
 ```
 sudo pip install pika requests beautifulsoup4 redis
