@@ -3,6 +3,7 @@ from json import loads as json_loads
 from redis import StrictRedis
 from functools import partial
 from daftpunk import GEOCODE_API, PROPERTIES, BER_RATINGS
+from bs4 import BeautifulSoup
 
 RABBIT_QUEUE = 'daftpunk'
 
