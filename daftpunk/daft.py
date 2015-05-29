@@ -103,7 +103,7 @@ class DaftProperty(object):
     @staticmethod
     def strip_from_path(path):
         path_match = match("/(sales|lettings)/(.*?)/(\d*)/?", path)
-        
+
         category, tag, prop_id = path_match.groups() \
                 if path_match \
                 else ("", "", "")
