@@ -30,12 +30,13 @@ sudo pip install pika requests beautifulsoup4 redis
 
 ## Proposed redis schema
 
-* properties -> z(prop_id, ...)
-* properties:sales -> z(prop_id, ...)
-* properties:lettings -> z(prop_id, ...)
+* daftpunk:properties -> {<prop_id>, ...}
+* daftpunk:<prop_id>:timestamps -> [<timestamp>, ...]
+* daftpunk:<prop_id>:html -> string
 
-* prop_id:url -> string
-* prop_id:host -> string
-* prop_id:path -> string
-* prop_id:category -> string
-* prop_id:tag -> string
+* daftpunk:<prop_id>:price -> z{<timestamp>:string, ...}
+* daftpunk:<prop_id>:ber -> string
+* daftpunk:<prop_id>:phone_numbers -> {string}
+* daftpunk:<prop_id>:address -> string
+* daftpunk:<prop_id>:lat -> string
+* daftpunk:<prop_id>:long -> long
