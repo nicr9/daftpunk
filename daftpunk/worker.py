@@ -1,8 +1,10 @@
 from pika import BlockingConnection, ConnectionParameters
 from json import loads as json_loads
 from redis import StrictRedis
+from re import sub as re_sub
+from requests import get as req_get
 from functools import partial
-from daftpunk import GEOCODE_API, PROPERTIES, BER_RATINGS
+from daftpunk import GEOCODE_API, BER_RATINGS
 from bs4 import BeautifulSoup
 
 RABBIT_QUEUE = 'daftpunk'
@@ -36,10 +38,26 @@ class DpWorker(object):
         print ' [*] Waiting for messages. To exit press CTRL+C'
         self.rabbit.start_consuming()
 
+def scrape(func):
+    func.__scrape__ = True
+    return func
+
 class DpParser(object):
     def __init__(self, config):
         self.config = config
         self.redis = StrictRedis(host='localhost', port=6379, db=0)
+
+    def scrape_all(self, soup, timestamp, id_):
+        for attr_name in dir(self):
+            attr = getattr(self, attr_name)
+            if hasattr(attr, '__scrape__'):
+                attr(soup, timestamp, id_)
+
+    @scrape
+    def pricing(self, soup, timestamp, id_):
+        price = soup.find(id="smi-price-string")
+        price = price.string if price else ''
+        self.redis.zadd('daftpunk:%s:price' % id_, timestamp, price)
 
     def process_message(self, body):
         prop = {}
@@ -54,9 +72,7 @@ class DpParser(object):
         # parse relevant information from html
         soup = BeautifulSoup(html)
 
-        # Pricing
-        price = soup.find(id="smi-price-string").string
-        self.redis.zadd('daftpunk:%s:price' % id_, timestamp, price)
+        self.scrape_all(soup, timestamp, id_)
 
         # BER Rating
         ber = soup.find(**{'class':"ber-icon"})
@@ -104,7 +120,7 @@ class DpParser(object):
 
             lat_long = results[0]['geometry']['location']
             self.redis.set('daftpunk:%s:lat' % id_, lat_long['lat'])
-            self.redis.set('daftpunk:%s:long' % id_, lat_long['long'])
+            self.redis.set('daftpunk:%s:long' % id_, lat_long['lng'])
 
 if __name__ == "__main__":
     x = DpWorker({})
