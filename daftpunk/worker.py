@@ -47,11 +47,18 @@ class DpParser(object):
         self.config = config
         self.redis = StrictRedis(host='localhost', port=6379, db=0)
 
-    def scrape_all(self, soup, timestamp, id_):
+    def scrape_all(self, html, timestamp, id_):
+        soup = BeautifulSoup(html)
+
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
             if hasattr(attr, '__scrape__'):
                 attr(soup, timestamp, id_)
+
+        # Send the rest of message contents to redis
+        self.redis.sadd('daftpunk:properties', id_)
+        self.redis.rpush('daftpunk:%s:timestamps' % id_, timestamp)
+        self.redis.set('daftpunk:%s:html' % id_, html)
 
     @scrape
     def pricing(self, soup, timestamp, id_):
@@ -115,15 +122,7 @@ class DpParser(object):
         message = json_loads(body)
         id_, timestamp, html = message
 
-        # Send message contents to redis
-        self.redis.sadd('daftpunk:properties', id_)
-        self.redis.rpush('daftpunk:%s:timestamps' % id_, timestamp)
-        self.redis.set('daftpunk:%s:html' % id_, html)
-
-        # parse relevant information from html
-        soup = BeautifulSoup(html)
-
-        self.scrape_all(soup, timestamp, id_)
+        self.scrape_all(html, timestamp, id_)
 
         return id_
 
