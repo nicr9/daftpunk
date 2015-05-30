@@ -6,6 +6,7 @@ from requests import get as req_get
 from functools import partial
 from daftpunk import GEOCODE_API, BER_RATINGS
 from bs4 import BeautifulSoup
+import logging
 
 RABBIT_QUEUE = 'daftpunk'
 
@@ -58,10 +59,14 @@ class DpParser(object):
 
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if firsttime and hasattr(attr, '__scrape_once__'):
-                attr(soup, timestamp, id_)
-            elif hasattr(attr, '__scrape_update__'):
-                attr(soup, timestamp, id_)
+            try:
+                if firsttime and hasattr(attr, '__scrape_once__'):
+                    attr(soup, timestamp, id_)
+                elif hasattr(attr, '__scrape_update__'):
+                    attr(soup, timestamp, id_)
+            except Exception as e:
+                logging.error("Encountered error parsing %d: %s" % (id_, e))
+                continue
 
         # Send the rest of message contents to redis
         self.redis.sadd('daftpunk:properties', id_)
