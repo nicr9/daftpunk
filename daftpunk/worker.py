@@ -38,8 +38,12 @@ class DpWorker(object):
         print ' [*] Waiting for messages. To exit press CTRL+C'
         self.rabbit.start_consuming()
 
-def scrape(func):
-    func.__scrape__ = True
+def scrape_once(func):
+    func.__scrape_once__ = True
+    return func
+
+def scrape_update(func):
+    func.__scrape_update__ = True
     return func
 
 class DpParser(object):
@@ -50,9 +54,13 @@ class DpParser(object):
     def scrape_all(self, html, timestamp, id_):
         soup = BeautifulSoup(html)
 
+        firsttime = not self.redis.sismember('daftpunk:properties', id_)
+
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
-            if hasattr(attr, '__scrape__'):
+            if firsttime and hasattr(attr, '__scrape_once__'):
+                attr(soup, timestamp, id_)
+            elif hasattr(attr, '__scrape_update__'):
                 attr(soup, timestamp, id_)
 
         # Send the rest of message contents to redis
@@ -60,14 +68,14 @@ class DpParser(object):
         self.redis.rpush('daftpunk:%s:timestamps' % id_, timestamp)
         self.redis.set('daftpunk:%s:html' % id_, html)
 
-    @scrape
+    @scrape_update
     def pricing(self, soup, timestamp, id_):
         price = soup.find(id="smi-price-string")
         price = price.string if price else ''
 
         self.redis.zadd('daftpunk:%s:price' % id_, timestamp, price)
 
-    @scrape
+    @scrape_once
     def ber_rating(self, soup, timestamp, id_):
         ber = soup.find(**{'class':"ber-icon"})
         ber_number = ber['id'] if ber else ''
@@ -75,7 +83,7 @@ class DpParser(object):
 
         self.redis.set('daftpunk:%s:ber' % id_, ber_rating)
 
-    @scrape
+    @scrape_once
     def phone_numbers(self, soup, timestamp, id_):
         phones = set()
         phone_class = soup.find(**{'class':"phone1"})
@@ -89,13 +97,13 @@ class DpParser(object):
 
         self.redis.sadd('daftpunk:%s:phone_numbers' % id_, *phones)
 
-    @scrape
+    @scrape_once
     def address(self, soup, timestamp, id_):
         address = soup.find(id="address_box").h1.text
 
         self.redis.set('daftpunk:%s:address' % id_, address)
 
-    @scrape
+    @scrape_once
     def geocode(self, soup, timestamp, id_):
         if not self.is_geocoded(id_):
             address = self.redis.get('daftpunk:%s:address' % id_)
