@@ -56,7 +56,7 @@ class DpScraper(object):
         prop_html = resp.text
 
         timestamp = time()
-        return json_dumps([prop_id, timestamp, prop_html])
+        return json_dumps([url, prop_id, timestamp, prop_html])
 
     def run(self):
         self.rabbit_connect()
