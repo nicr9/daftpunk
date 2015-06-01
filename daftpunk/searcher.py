@@ -8,7 +8,7 @@ from time import time
 
 RABBIT_QUEUE = 'daftpunk'
 
-class DpScraper(object):
+class DpSearcher(object):
     def __init__(self, config):
         self.config = config
         self.run()
@@ -79,4 +79,4 @@ if __name__ == "__main__":
                 'http://www.daft.ie/kildare/houses-for-sale/johnstownbridge/',
                 ]
             }
-    DpScraper(config)
+    DpSearcher(config)
