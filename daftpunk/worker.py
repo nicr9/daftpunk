@@ -2,12 +2,14 @@ from pika import BlockingConnection, ConnectionParameters
 from json import loads as json_loads
 from redis import StrictRedis
 from re import sub as re_sub
+from re import match as re_match
 from requests import get as req_get
 from functools import partial
 from daftpunk import GEOCODE_API, BER_RATINGS
 from bs4 import BeautifulSoup
 from nltk.tokenize import word_tokenize
 from nltk import FreqDist
+from urlparse import urlsplit
 import logging
 
 RABBIT_QUEUE = 'daftpunk'
@@ -54,7 +56,8 @@ class DpParser(object):
         self.config = config
         self.redis = StrictRedis(host='localhost', port=6379, db=0)
 
-    def scrape_all(self, url, id_, timestamp, html):
+    def scrape_all(self, url, timestamp, html):
+        category, tag, id_ = self.strip_url(url)
         soup = BeautifulSoup(html)
 
         firsttime = not self.redis.sismember('daftpunk:properties', id_)
@@ -75,6 +78,10 @@ class DpParser(object):
         self.redis.rpush('daftpunk:%s:timestamps' % id_, timestamp)
         self.redis.set('daftpunk:%s:url' % id_, url)
         self.redis.set('daftpunk:%s:html' % id_, html)
+        self.redis.set('daftpunk:%s:tag' % id_, tag)
+        self.redis.set('daftpunk:%s:category' % id_, category)
+
+        return id_
 
     @scrape_update
     def pricing(self, id_, timestamp, soup):
@@ -157,12 +164,24 @@ class DpParser(object):
             if resp.status_code == 200:
                 self.redis.rpush('daftpunk:%s:images' % id_, resp.raw.read())
 
+    @staticmethod
+    def strip_url(url):
+        split_results = urlsplit(url)
+        path = split_results.path
+
+        path_match = re_match("/(sales|lettings)/(.*?)/(\d*)/?", path)
+        category, tag, prop_id = path_match.groups() \
+                if path_match \
+                else ("", "", "")
+
+        return category, tag, prop_id
+
     def process_message(self, body):
         prop = {}
         message = json_loads(body)
-        url, id_, timestamp, html = message
+        url, timestamp, html = message
 
-        self.scrape_all(url, id_, timestamp, html)
+        id_ = self.scrape_all(url, timestamp, html)
 
         return id_
 

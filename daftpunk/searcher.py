@@ -47,16 +47,12 @@ class DpSearcher(object):
         self.rabbit.queue_declare(queue=RABBIT_QUEUE)
 
     def create_message(self, url):
-        # Get prop_id
-        url_match = search("/(\d*)/?$", url)
-        prop_id = url_match.group(1)
-
         # Get prop_html
         resp = req_get(url)
         prop_html = resp.text
 
         timestamp = time()
-        return json_dumps([url, prop_id, timestamp, prop_html])
+        return json_dumps([url, timestamp, prop_html])
 
     def run(self):
         self.rabbit_connect()
