@@ -1,0 +1,9 @@
+#! /usr/bin/env python2.7
+from daftpunk.searcher import DpSearcher
+
+config = {
+        'queries': [
+            'http://www.daft.ie/kildare/houses-for-sale/johnstownbridge/',
+            ]
+        }
+DpSearcher(config)

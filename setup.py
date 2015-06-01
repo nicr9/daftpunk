@@ -9,7 +9,7 @@ setup(
         author='Nic Roland',
         author_email='nicroland9@gmail.com',
         packages=['daftpunk'],
-        scripts = ['bin/daftpunk'],
+        scripts = ['bin/dp_searcher', 'bin/dp_worker'],
         install_requires=[
             'pika',
             'requests',
