@@ -147,6 +147,16 @@ class DpParser(object):
         for token, freq in freqdist.iteritems():
             self.redis.zadd('daftpunk:%s:tokens' % id_, freq, token)
 
+    @scrape_once
+    def photos(self, soup, timestamp, id_):
+        carousel = soup.find(id='pbxl_carousel')
+        for img in carousel.find_all('img'):
+            url = 'http:' + img.attrs['data-original']
+
+            resp = req_get(url, stream=True)
+            if resp.status_code == 200:
+                self.redis.rpush('daftpunk:%s:images' % id_, resp.raw.read())
+
     def process_message(self, body):
         prop = {}
         message = json_loads(body)
