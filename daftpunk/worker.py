@@ -65,7 +65,7 @@ class DpParser(object):
                 elif hasattr(attr, '__scrape_update__'):
                     attr(soup, timestamp, id_)
             except Exception as e:
-                logging.error("Encountered error parsing %d: %s" % (id_, e))
+                logging.error("Encountered error parsing %s: %s" % (id_, e))
                 continue
 
         # Send the rest of message contents to redis
