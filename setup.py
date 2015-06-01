@@ -1,6 +1,5 @@
 from distutils.core import setup
-
-VERSION = 'v0.1'
+from daftpunk import VERSION
 
 setup(
         name='daftpunk',

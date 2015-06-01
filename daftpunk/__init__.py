@@ -1,10 +1,11 @@
+VERSION = 'v0.1'
+
 REDIS_CONFIG = {
         'host': 'localhost',
         'port': 6379,
         'db': 0
         }
 GEOCODE_API = "https://maps.googleapis.com/maps/api/geocode/json"
-PROPERTIES = "properties"
 BER_RATINGS = [
         '', # Unknown
         'ber-G',
