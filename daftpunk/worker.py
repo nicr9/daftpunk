@@ -54,7 +54,7 @@ class DpParser(object):
         self.config = config
         self.redis = StrictRedis(host='localhost', port=6379, db=0)
 
-    def scrape_all(self, url, html, timestamp, id_):
+    def scrape_all(self, url, id_, timestamp, html):
         soup = BeautifulSoup(html)
 
         firsttime = not self.redis.sismember('daftpunk:properties', id_)
@@ -162,7 +162,7 @@ class DpParser(object):
         message = json_loads(body)
         url, id_, timestamp, html = message
 
-        self.scrape_all(url, html, timestamp, id_)
+        self.scrape_all(url, id_, timestamp, html)
 
         return id_
 
