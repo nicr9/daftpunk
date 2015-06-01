@@ -63,9 +63,9 @@ class DpParser(object):
             attr = getattr(self, attr_name)
             try:
                 if firsttime and hasattr(attr, '__scrape_once__'):
-                    attr(soup, timestamp, id_)
+                    attr(id_, timestamp, soup)
                 elif hasattr(attr, '__scrape_update__'):
-                    attr(soup, timestamp, id_)
+                    attr(id_, timestamp, soup)
             except Exception as e:
                 logging.error("Encountered error parsing %s: %s" % (id_, e))
                 continue
@@ -77,14 +77,14 @@ class DpParser(object):
         self.redis.set('daftpunk:%s:html' % id_, html)
 
     @scrape_update
-    def pricing(self, soup, timestamp, id_):
+    def pricing(self, id_, timestamp, soup):
         price = soup.find(id="smi-price-string")
         price = price.string if price else ''
 
         self.redis.zadd('daftpunk:%s:price' % id_, timestamp, price)
 
     @scrape_once
-    def ber_rating(self, soup, timestamp, id_):
+    def ber_rating(self, id_, timestamp, soup):
         ber = soup.find(**{'class':"ber-icon"})
         ber_number = ber['id'] if ber else ''
         ber_rating = BER_RATINGS.index(ber_number)
@@ -92,7 +92,7 @@ class DpParser(object):
         self.redis.set('daftpunk:%s:ber' % id_, ber_rating)
 
     @scrape_once
-    def phone_numbers(self, soup, timestamp, id_):
+    def phone_numbers(self, id_, timestamp, soup):
         phones = set()
         phone_class = soup.find(**{'class':"phone1"})
         if phone_class:
@@ -106,13 +106,13 @@ class DpParser(object):
         self.redis.sadd('daftpunk:%s:phone_numbers' % id_, *phones)
 
     @scrape_once
-    def address(self, soup, timestamp, id_):
+    def address(self, id_, timestamp, soup):
         address = soup.find(id="address_box").h1.text
 
         self.redis.set('daftpunk:%s:address' % id_, address)
 
     @scrape_once
-    def geocode(self, soup, timestamp, id_):
+    def geocode(self, id_, timestamp, soup):
         if not self.is_geocoded(id_):
             address = self.redis.get('daftpunk:%s:address' % id_)
             payload = {'address': address}
@@ -134,7 +134,7 @@ class DpParser(object):
         return (lat and long_)
 
     @scrape_once
-    def description_and_tokens(self, soup, timestamp, id_):
+    def description_and_tokens(self, id_, timestamp, soup):
         overview = soup.find(id="description")
         for scr in overview.find_all('script'):
             scr.clear()
@@ -148,7 +148,7 @@ class DpParser(object):
             self.redis.zadd('daftpunk:%s:tokens' % id_, freq, token)
 
     @scrape_once
-    def photos(self, soup, timestamp, id_):
+    def photos(self, id_, timestamp, soup):
         carousel = soup.find(id='pbxl_carousel')
         for img in carousel.find_all('img'):
             url = 'http:' + img.attrs['data-original']
