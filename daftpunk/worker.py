@@ -6,6 +6,8 @@ from requests import get as req_get
 from functools import partial
 from daftpunk import GEOCODE_API, BER_RATINGS
 from bs4 import BeautifulSoup
+from nltk.tokenize import word_tokenize
+from nltk import FreqDist
 import logging
 
 RABBIT_QUEUE = 'daftpunk'
@@ -130,6 +132,20 @@ class DpParser(object):
         lat = self.redis.get('daftpunk:%s:lat' % id_)
         long_ = self.redis.get('daftpunk:%s:long' % id_)
         return (lat and long_)
+
+    @scrape_once
+    def description_and_tokens(self, soup, timestamp, id_):
+        overview = soup.find(id="description")
+        for scr in overview.find_all('script'):
+            scr.clear()
+
+        desc = overview.text
+        tokens = word_tokenize(desc)
+        freqdist = FreqDist(tokens)
+
+        self.redis.set('daftpunk:%s:description' % id_, desc)
+        for token, freq in freqdist.iteritems():
+            self.redis.zadd('daftpunk:%s:tokens' % id_, freq, token)
 
     def process_message(self, body):
         prop = {}

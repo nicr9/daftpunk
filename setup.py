@@ -15,6 +15,7 @@ setup(
             'requests',
             'beautifulsoup4',
             'redis',
+            'nltk',
             ],
         license='MIT',
         )

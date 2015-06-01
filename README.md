@@ -25,8 +25,10 @@ sudo make install
 
 Then install python plugins:
 ```
-sudo pip install pika requests beautifulsoup4 redis
+sudo pip install pika requests beautifulsoup4 redis nltk
 ```
+
+To initialise nltk run `python -c "import nltk; nltk.download()"`, switch to models tab and download `punkt`.
 
 ## Proposed redis schema
 
