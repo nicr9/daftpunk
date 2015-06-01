@@ -11,6 +11,7 @@ from nltk.tokenize import word_tokenize
 from nltk import FreqDist
 from urlparse import urlsplit
 import logging
+import traceback
 
 RABBIT_QUEUE = 'daftpunk'
 
@@ -70,6 +71,7 @@ class DpParser(object):
                 elif hasattr(attr, '__scrape_update__'):
                     attr(id_, timestamp, soup)
             except Exception as e:
+                logging.error(traceback.format_exc())
                 logging.error("Encountered error parsing %s: %s" % (id_, e))
                 continue
 
