@@ -37,8 +37,12 @@ To initialise nltk run `python -c "import nltk; nltk.download()"`, switch to mod
 * daftpunk:<prop_id>:html -> string
 
 * daftpunk:<prop_id>:price -> z{<timestamp>:string, ...}
+* daftpunk:<prop_id>:currency -> string
 * daftpunk:<prop_id>:ber -> string
 * daftpunk:<prop_id>:phone_numbers -> {string}
 * daftpunk:<prop_id>:address -> string
 * daftpunk:<prop_id>:lat -> string
 * daftpunk:<prop_id>:long -> long
+* daftpunk:<prop_id>:description -> string
+* daftpunk:<prop_id>:tokens -> z{string: float, ...}
+* daftpunk:<prop_id>:images -> [binary, ...]

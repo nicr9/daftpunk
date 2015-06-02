@@ -7,6 +7,8 @@ setup(
         description='Scrape & process data from daft.ie',
         author='Nic Roland',
         author_email='nicroland9@gmail.com',
+        url = 'https://github.com/nicr9/daftpunk',
+        download_url = 'https://github.com/nicr9/daftpunk/tarball/%s' % VERSION,
         packages=['daftpunk'],
         scripts = ['bin/dp_searcher', 'bin/dp_worker'],
         install_requires=[
