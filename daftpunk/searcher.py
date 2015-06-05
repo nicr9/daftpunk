@@ -57,7 +57,7 @@ class DpSearcher(object):
     def run(self):
         self.rabbit_connect()
 
-        for query in self.config['queries']:
+        for query in self.config.queries:
             for url in self.find_properties(query):
                 print url
                 message = self.create_message(url)
@@ -70,9 +70,21 @@ class DpSearcher(object):
         self.rabbit.close()
 
 if __name__ == "__main__":
-    config = {
-            'queries': [
-                'http://www.daft.ie/kildare/houses-for-sale/johnstownbridge/',
-                ]
-            }
+    from pkg_resources import Requirement, resource_filename
+    from daftpunk.schema import DpConfig
+
+    local_path = './daftpunk/config/config.json'
+    global_path = resource_filename(
+            Requirement.parse("daftpunk"),
+            'config/config.json')
+
+    if isfile(local_path):
+        path = local_path
+    elif isfile(global_path):
+        path = global_path
+    else:
+        print "Couldn't find a valid config."
+        quit()
+
+    config = DpConfig().from_file(path)
     DpSearcher(config)

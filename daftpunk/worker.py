@@ -191,4 +191,21 @@ class DpParser(object):
         return id_
 
 if __name__ == "__main__":
-    x = DpWorker({})
+    from pkg_resources import Requirement, resource_filename
+    from daftpunk.schema import DpConfig
+
+    local_path = './daftpunk/config/config.json'
+    global_path = resource_filename(
+            Requirement.parse("daftpunk"),
+            'config/config.json')
+
+    if isfile(local_path):
+        path = local_path
+    elif isfile(global_path):
+        path = global_path
+    else:
+        print "Couldn't find a valid config."
+        quit()
+
+    config = DpConfig().from_file(path)
+    DpWorker(config)

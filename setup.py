@@ -10,6 +10,7 @@ setup(
         url = 'https://github.com/nicr9/daftpunk',
         download_url = 'https://github.com/nicr9/daftpunk/tarball/%s' % VERSION,
         packages=['daftpunk'],
+        package_data={'daftpunk': ['config/*.json']},
         scripts = ['bin/dp_searcher', 'bin/dp_worker'],
         install_requires=[
             'pika',
