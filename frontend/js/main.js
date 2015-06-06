@@ -8,6 +8,14 @@ var map = new google.maps.Map(d3.select("#map").node(), {
 d3.json('properties', function(data) {
   var overlay = new google.maps.OverlayView();
 
+  var priceList = [];
+  for (var i = 0; i < data.length; i++) {
+    if(data[i])
+      priceList.push(data[i].current_price);
+  };
+
+  var color = d3.scale.linear().domain(priceList).range(["#00f","#f00"]);
+
   // Add the container when the overlay is added to the map.
   overlay.onAdd = function() {
     var layer = d3.select(this.getPanes().overlayMouseTarget).append("div")
@@ -29,13 +37,16 @@ d3.json('properties', function(data) {
       // Add a circle.
       marker.append("svg:circle")
         .attr("r", 10)
-        .attr("opacity", function(d){ return d.key * 0.01;})
+        .attr("fill", function(d){ 
+          console.log(color(d.value.current_price));
+          return color(d.value.current_price);
+        })
         .attr("cx", padding)
         .attr("cy", padding)
-        .on("click", function(d){
-          console.log(d.value.id); 
-          d3.json('property/' + d.value.id, function(d){
-
+        .on("click", function(d){ 
+          d3.json('property/' + d.value.id, function(res){
+            
+            alert(res.description);
           });
         });
 

@@ -17,7 +17,7 @@ html, body, #map {
     }
 
 .gaffs circle {
-  fill: red;
+  /*fill: red;*/
   stroke: black;
   stroke-width: 1.5px;
 }

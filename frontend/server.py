@@ -29,6 +29,9 @@ def show_properties():
       print r.mget('daftpunk:%s:current_price' % n)
       if r.get('daftpunk:%s:current_price' % n):
         current_price = float(r.get('daftpunk:%s:current_price' % n).split(' ')[0])
+      else:
+        current_price = None
+        
       data.append({
             "id":n, 
             "address": r.get('daftpunk:%s:address' % n),

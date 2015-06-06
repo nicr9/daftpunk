@@ -89,6 +89,7 @@ class DpParser(object):
     def pricing(self, id_, timestamp, soup):
         price = soup.find(id="smi-price-string")
         if price:
+            import pdb; pdb.set_trace()
             currency = price.string[0]
             value = price.string[1:].replace(',', '')
             logging.error( float(value.split(' ')[0]))

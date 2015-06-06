@@ -30,6 +30,11 @@ sudo pip install pika requests beautifulsoup4 redis nltk
 
 To initialise nltk run `python -c "import nltk; nltk.download()"`, switch to models tab and download `punkt`.
 
+Run this:
+```
+python setup.py install
+```
+
 ## Proposed redis schema
 
 * daftpunk:properties -> {<prop_id>, ...}
