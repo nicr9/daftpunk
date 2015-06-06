@@ -16,6 +16,10 @@ def send_js(path):
 def send_css(path):
     return send_from_directory('css', path)
 
+@app.route('/bower_components/<path:path>')
+def send_bower(path):
+    return send_from_directory('bower_components', path)
+
 @app.route('/properties/')
 def show_properties():
     props = r.smembers('daftpunk:properties')
