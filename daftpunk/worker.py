@@ -90,10 +90,11 @@ class DpParser(object):
         price = soup.find(id="smi-price-string")
         if price:
             currency = price.string[0]
-            value = price.string[1:].replace(',', '.')
+            value = price.string[1:].replace(',', '')
 
             self.redis.zadd('daftpunk:%s:price' % id_, value, timestamp)
             self.redis.set('daftpunk:%s:currency' % id_, currency)
+            self.redis.set('daftpunk:%s:current_price' % id_, value)
 
     @scrape_once
     def ber_rating(self, id_, timestamp, soup):
@@ -165,6 +166,7 @@ class DpParser(object):
         for img in carousel.find_all('img'):
             url = 'http:' + img.attrs['data-original']
 
+            self.redis.rpush('daftpunk:%s:image_urls' % id_, url)
             resp = req_get(url, stream=True)
             if resp.status_code == 200:
                 self.redis.rpush('daftpunk:%s:images' % id_, resp.raw.read())
