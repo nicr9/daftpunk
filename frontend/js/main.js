@@ -44,9 +44,9 @@ d3.json('properties', function(data) {
         .attr("x", padding + 7)
         .attr("y", padding)
         .attr("dy", ".31em")
-        .style("visibility", "hidden")
+        // .style("visibility", "hidden")
         .text(function(d) {
-          return d.value.address;
+          return d.value.current_price;
         });
 
       function transform(d) {
