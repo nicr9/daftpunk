@@ -25,6 +25,26 @@ BER_RATINGS = [
         'ber-A1',
         ]
 
+def get_config():
+    from pkg_resources import Requirement, resource_filename
+    from daftpunk.schema import DpConfig
+    from os.path import isfile
+
+    local_path = './daftpunk/config/config.json'
+    global_path = resource_filename(
+            Requirement.parse("daftpunk"),
+            'daftpunk/config/config.json')
+
+    if isfile(local_path):
+        path = local_path
+    elif isfile(global_path):
+        path = global_path
+    else:
+        print "Couldn't find a valid config."
+        quit()
+
+    return DpConfig().from_file(path)
+
 class DaftMeta(type):
     def __new__(mcls, name, bases, cdict):
         handlers = {}

@@ -1,7 +1,7 @@
 from lament import *
 
-class DpConfig(object):
-    @config(dict)
+class DpConfig(LamentConfig):
+    @config(list)
     def queries(self, config, obj):
         config.extend(obj)
         return config
