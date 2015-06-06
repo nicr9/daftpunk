@@ -165,6 +165,7 @@ class DpParser(object):
         for img in carousel.find_all('img'):
             url = 'http:' + img.attrs['data-original']
 
+            self.redis.rpush('daftpunk:%s:image_urls' % id_, url)
             resp = req_get(url, stream=True)
             if resp.status_code == 200:
                 self.redis.rpush('daftpunk:%s:images' % id_, resp.raw.read())
