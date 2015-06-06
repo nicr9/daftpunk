@@ -21,17 +21,19 @@ class DpWorker(object):
         self.run()
 
     def rabbit_connect(self, callback):
-        conn = BlockingConnection(ConnectionParameters('localhost'))
+        if 'rabbit' in self.config:
+            host = self.config['rabbit']
+        else:
+            host = 'localhost'
+        conn = BlockingConnection(ConnectionParameters(host))
         self.rabbit = conn.channel()
         self.rabbit.queue_declare(queue=RABBIT_QUEUE)
+
         self.rabbit.basic_consume(
                 callback,
                 queue=RABBIT_QUEUE,
                 no_ack=True
                 )
-
-
-        print "connected"
 
     def run(self):
         def callback(parser, ch, method, properties, msg):
