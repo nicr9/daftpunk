@@ -90,10 +90,11 @@ class DpParser(object):
         price = soup.find(id="smi-price-string")
         if price:
             currency = price.string[0]
-            value = price.string[1:].replace(',', '.')
+            value = price.string[1:].replace(',', '')
 
             self.redis.zadd('daftpunk:%s:price' % id_, value, timestamp)
             self.redis.set('daftpunk:%s:currency' % id_, currency)
+            self.redis.set('daftpunk:%s:current_price' % id_, value)
 
     @scrape_once
     def ber_rating(self, id_, timestamp, soup):
