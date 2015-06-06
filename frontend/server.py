@@ -38,7 +38,6 @@ def show_properties():
 
 @app.route('/property/<id>')
 def show_property(id):
-
 	timestamps, prices = zip(*r.zrange('daftpunk:%s:price' % id, 0, -1, withscores=True))
 	data = {
 			"id":id, 

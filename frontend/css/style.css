@@ -5,19 +5,19 @@ html, body, #map {
   padding: 0;
 }
 
-.gaffs, .gaffs svg {
-  position: absolute;
-}
+    .gaffs, .gaffs svg {
+      position: absolute;
+    }
 
-.gaffs svg {
-  width: 60px;
-  height: 20px;
-  padding-right: 100px;
-  font: 10px sans-serif;
-}
+    .gaffs svg {
+      /*width: 60px;*/
+      /*height: 20px;*/
+      /*padding-right: 100px;*/
+      /*font: 10px sans-serif;*/
+    }
 
 .gaffs circle {
-  fill: brown;
+  fill: red;
   stroke: black;
   stroke-width: 1.5px;
 }

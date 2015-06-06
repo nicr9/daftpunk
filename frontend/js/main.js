@@ -10,14 +10,14 @@ d3.json('properties', function(data) {
 
   // Add the container when the overlay is added to the map.
   overlay.onAdd = function() {
-    var layer = d3.select(this.getPanes().overlayLayer).append("div")
+    var layer = d3.select(this.getPanes().overlayMouseTarget).append("div")
       .attr("class", "gaffs");
 
     // Draw each marker as a separate SVG element.
     // We could use a single SVG, but what size would it have?
     overlay.draw = function() {
       var projection = this.getProjection(),
-        padding = 10;
+        padding = 100;
 
       var marker = layer.selectAll("svg")
         .data(d3.entries(data))
@@ -28,9 +28,16 @@ d3.json('properties', function(data) {
 
       // Add a circle.
       marker.append("svg:circle")
-        .attr("r", function(d){ console.log(d); return d.key;})
+        .attr("r", 10)
+        .attr("opacity", function(d){ return d.key * 0.01;})
         .attr("cx", padding)
-        .attr("cy", padding);
+        .attr("cy", padding)
+        .on("click", function(d){
+          console.log(d.value.id); 
+          d3.json('property/' + d.value.id, function(d){
+
+          });
+        });
 
       // Add a label.
       marker.append("svg:text")
