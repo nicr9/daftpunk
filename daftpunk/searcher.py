@@ -46,7 +46,7 @@ class DpSearcher(object):
             host = self.config['rabbit']
         else:
             host = 'localhost'
-        conn = BlockingConnection(ConnectionParameters(host))
+        conn = BlockingConnection(ConnectionParameters(host, connection_attempts=3))
         self.rabbit = conn.channel()
         self.rabbit.queue_declare(queue=RABBIT_QUEUE)
 
