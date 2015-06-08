@@ -1,6 +1,6 @@
 {
-    "rabbit": "rabbitmq",
-    "redis": "redis",
+    "queue_host": "rabbitmq",
+    "db_host": "redis",
     "queries": [
         "http://www.daft.ie/kildare/houses-for-sale/johnstownbridge/"
     ]

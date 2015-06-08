@@ -21,8 +21,8 @@ class DpWorker(object):
         self.run()
 
     def rabbit_connect(self, callback):
-        if 'rabbit' in self.config:
-            host = self.config['rabbit']
+        if 'queue_host' in self.config:
+            host = self.config['queue_host']
         else:
             host = 'localhost'
         conn = BlockingConnection(ConnectionParameters(host, connection_attempts=3))
@@ -57,8 +57,8 @@ def scrape_update(func):
 class DpParser(object):
     def __init__(self, config):
         self.config = config
-        if 'redis' in self.config:
-            host = self.config['redis']
+        if 'db_host' in self.config:
+            host = self.config['db_host']
         else:
             host = 'localhost'
         self.redis = StrictRedis(host=host, port=6379, db=0)

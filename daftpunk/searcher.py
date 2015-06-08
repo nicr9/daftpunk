@@ -42,8 +42,8 @@ class DpSearcher(object):
         return properties
 
     def rabbit_connect(self):
-        if 'rabbit' in self.config:
-            host = self.config['rabbit']
+        if 'queue_host' in self.config:
+            host = self.config['queue_host']
         else:
             host = 'localhost'
         conn = BlockingConnection(ConnectionParameters(host, connection_attempts=3))
