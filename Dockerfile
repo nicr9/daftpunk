@@ -8,3 +8,5 @@ WORKDIR /opt/daftpunk
 RUN python2.7 setup.py install
 
 ADD daftpunk/config/docker.json /etc/daftpunk/config.json
+
+ENTRYPOINT tail -f /var/log/messages

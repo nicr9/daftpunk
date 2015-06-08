@@ -57,7 +57,11 @@ def scrape_update(func):
 class DpParser(object):
     def __init__(self, config):
         self.config = config
-        self.redis = StrictRedis(host='localhost', port=6379, db=0)
+        if 'redis' in self.config:
+            host = self.config['redis']
+        else:
+            host = 'localhost'
+        self.redis = StrictRedis(host=host, port=6379, db=0)
 
     def scrape_all(self, url, timestamp, html):
         category, tag, id_ = self.strip_url(url)
