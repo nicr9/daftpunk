@@ -24,7 +24,7 @@ sudo docker exec -it daftpunk_worker_1 dp_searcher
 sudo docker exec -it daftpunk_worker_1 dp_worker
 ```
 
-### On ubuntu
+### Manually on ubuntu
 
 First install rabbitmq and enable the admin web console:
 
