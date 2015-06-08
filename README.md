@@ -50,6 +50,13 @@ sudo python2.7 setup.py install
 python2.7 -c "import nltk; nltk.download('punkt')"
 ```
 
+Final step is to create a config file:
+
+```
+sudo mkdir /etc/daftpunk/
+sudo cp daftpunk/config/localhost.json /etc/daftpunk/config.json
+```
+
 Then to perform a search and process any property pages run:
 
 ```
