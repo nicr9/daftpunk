@@ -23,31 +23,30 @@ def show_properties():
     data = []
     for n in props:
     	data.append({
-						"id":n, 
-						"address": r.get('daftpunk:%s:address' % n),
-						"lat": r.get('daftpunk:%s:lat' % n),
-						"long": r.get('daftpunk:%s:long' % n)
-    		})
+                "id": n,
+                "address": r.get('daftpunk:%s:address' % n),
+                "lat": r.get('daftpunk:%s:lat' % n),
+                "long": r.get('daftpunk:%s:long' % n)
+                })
 
     resp = Response(json.dumps(data), status=200, mimetype='application/json')
     return resp
 
 @app.route('/property/<id>')
 def show_property(id):
+    timestamps, prices = zip(*r.zrange('daftpunk:%s:price' % id, 0, -1, withscores=True))
+    data = {
+            "id": id,
+            "address": r.get('daftpunk:%s:address' % id),
+            "lat": r.get('daftpunk:%s:lat' % id),
+            "long": r.get('daftpunk:%s:long' % id),
+            "description": r.get('daftpunk:%s:description' % id),
+            "timestamps": timestamps,
+            "prices": prices
+            }
 
-	timestamps, prices = zip(*r.zrange('daftpunk:%s:price' % id, 0, -1, withscores=True))
-	data = {
-			"id":id, 
-			"address": r.get('daftpunk:%s:address' % id),
-			"lat": r.get('daftpunk:%s:lat' % id),
-			"long": r.get('daftpunk:%s:long' % id),
-			"description": r.get('daftpunk:%s:description' % id),
-			"timestamps": timestamps,
-			"prices": prices
-    }
-
-	resp = Response(json.dumps(data), status=200, mimetype='application/json')
-	return resp
+    resp = Response(json.dumps(data), status=200, mimetype='application/json')
+    return resp
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True)
