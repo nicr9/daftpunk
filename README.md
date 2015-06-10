@@ -64,11 +64,12 @@ dp_searcher
 dp_worker
 ```
 
-## Proposed redis schema
+## Redis schema
 
 * daftpunk:properties -> {<prop_id>, ...}
 * daftpunk:<prop_id>:timestamps -> [<timestamp>, ...]
 * daftpunk:<prop_id>:html -> string
+* daftpunk:<prop_id>:category -> string
 
 * daftpunk:<prop_id>:price -> z{<timestamp>:string, ...}
 * daftpunk:<prop_id>:currency -> string
