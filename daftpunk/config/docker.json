@@ -2,6 +2,6 @@
     "queue_host": "rabbitmq",
     "db_host": "redis",
     "queries": [
-        "http://www.daft.ie/kildare/houses-for-sale/johnstownbridge/"
+        "http://www.daft.ie/dublin/houses-to-rent/rathmines/"
     ]
 }
