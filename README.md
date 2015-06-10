@@ -20,9 +20,11 @@ This will start up the message queue, database and a worker container.
 Then to perform a search and process any property pages run:
 
 ```
+sudo docker exec -d daftpunk_worker_1 dp_worker
 sudo docker exec -it daftpunk_worker_1 dp_searcher
-sudo docker exec -it daftpunk_worker_1 dp_worker
 ```
+
+At this point you can direct your browser to `localhost:5000` to see the frontend.
 
 ### Manually on ubuntu
 
