@@ -140,8 +140,8 @@ class DpParser(object):
 
             # Not sure how often google returns multiple results
             if len(results) > 1:
-                with open('./daft.%s.log' % self.prop_id, 'a') as outp:
-                    json_dump(results, outp)
+                logging.debug("Found multiple location results for property %s:" % id_)
+                logging.debug(json_dump(results, indent=4))
 
             lat_long = results[0]['geometry']['location']
             self.redis.set('daftpunk:%s:lat' % id_, lat_long['lat'])
