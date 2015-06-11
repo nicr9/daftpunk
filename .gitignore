@@ -2,5 +2,6 @@
 *.swp
 build/
 daftpunk.egg-info/
+daftpunk_cli.egg-info/
 dist/
 venv/

@@ -1,0 +1,17 @@
+from setuptools import setup
+from daftpunk import VERSION
+
+setup(
+        name='daftpunk-cli',
+        version=VERSION,
+        description='Control daftpunk containers',
+        author='Nic Roland',
+        author_email='nicroland9@gmail.com',
+        url = 'https://github.com/nicr9/daftpunk',
+        download_url = 'https://github.com/nicr9/daftpunk/tarball/%s' % VERSION,
+        scripts = ['bin/daftpunk'],
+        install_requires=[
+            'sh',
+            ],
+        license='MIT',
+        )

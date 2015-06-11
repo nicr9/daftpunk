@@ -6,13 +6,19 @@ Scrapes details from daft.ie and stores it in Redis.
 
 ### Using docker
 
-For help getting docker and docker-compose running [checkout this page.](https://docs.docker.com/compose/install/)
+For help getting docker and docker-compose installed [checkout this page.](https://docs.docker.com/compose/install/)
+
+First install the daftpunk CLI tool:
+
+```
+sudo python setup.cli install
+```
 
 Then to build all the services and start them run the following:
 
 ```
-sudo docker-compose build
-sudo docker-compose up
+sudo daftpunk build
+sudo daftpunk up
 ```
 
 This will start up the message queue, database and a worker container.
@@ -20,8 +26,8 @@ This will start up the message queue, database and a worker container.
 Then to perform a search and process any property pages run:
 
 ```
-sudo docker exec -d daftpunk_worker_1 dp_worker
-sudo docker exec -it daftpunk_worker_1 dp_searcher
+sudo daftpunk start_worker
+sudo daftpunk search
 ```
 
 At this point you can direct your browser to `localhost:5000` to see the frontend.
@@ -48,7 +54,7 @@ sudo make install
 Then install all the python bits:
 ```
 sudo pip install pika requests beautifulsoup4 redis nltk
-sudo python2.7 setup.py install
+sudo python2.7 setup.docker install
 python2.7 -c "import nltk; nltk.download('punkt')"
 ```
 
@@ -65,6 +71,15 @@ Then to perform a search and process any property pages run:
 dp_searcher
 dp_worker
 ```
+
+Finally start the frontend server:
+
+```
+cd frontend
+python server.py
+```
+
+This will be served on `localhost:5000`.
 
 ## Redis schema
 
