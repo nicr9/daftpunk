@@ -21,17 +21,19 @@ class DpWorker(object):
         self.run()
 
     def rabbit_connect(self, callback):
-        conn = BlockingConnection(ConnectionParameters('localhost'))
+        if 'queue_host' in self.config:
+            host = self.config['queue_host']
+        else:
+            host = 'localhost'
+        conn = BlockingConnection(ConnectionParameters(host, connection_attempts=3))
         self.rabbit = conn.channel()
         self.rabbit.queue_declare(queue=RABBIT_QUEUE)
+
         self.rabbit.basic_consume(
                 callback,
                 queue=RABBIT_QUEUE,
                 no_ack=True
                 )
-
-
-        print "connected"
 
     def run(self):
         def callback(parser, ch, method, properties, msg):
@@ -55,7 +57,11 @@ def scrape_update(func):
 class DpParser(object):
     def __init__(self, config):
         self.config = config
-        self.redis = StrictRedis(host='localhost', port=6379, db=0)
+        if 'db_host' in self.config:
+            host = self.config['db_host']
+        else:
+            host = 'localhost'
+        self.redis = StrictRedis(host=host, port=6379, db=0)
 
     def scrape_all(self, url, timestamp, html):
         category, tag, id_ = self.strip_url(url)
@@ -136,8 +142,8 @@ class DpParser(object):
 
             # Not sure how often google returns multiple results
             if len(results) > 1:
-                with open('./daft.%s.log' % self.prop_id, 'a') as outp:
-                    json_dump(results, outp)
+                logging.debug("Found multiple location results for property %s:" % id_)
+                logging.debug(json_dump(results, indent=4))
 
             lat_long = results[0]['geometry']['location']
             self.redis.set('daftpunk:%s:lat' % id_, lat_long['lat'])

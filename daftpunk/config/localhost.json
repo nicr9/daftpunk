@@ -1,0 +1,7 @@
+{
+    "queue_host": "localhost",
+    "db_host": "localhost",
+    "queries": [
+        "http://www.daft.ie/kildare/houses-for-sale/johnstownbridge/"
+    ]
+}
