@@ -2,10 +2,6 @@
 from daftpunk.searcher import DpSearcher
 from json import load
 
-config = {
-        'queries': [
-            'http://www.daft.ie/dublin/houses-to-rent/rathmines/',
-            ]
-        }
-
+with open('/etc/daftpunk/config.json') as inp:
+    config = load(inp)
 DpSearcher(config)
