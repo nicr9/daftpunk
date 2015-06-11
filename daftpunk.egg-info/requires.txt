@@ -1,5 +1,0 @@
-pika
-requests
-beautifulsoup4
-redis
-nltk
