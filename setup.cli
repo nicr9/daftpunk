@@ -10,8 +10,5 @@ setup(
         url = 'https://github.com/nicr9/daftpunk',
         download_url = 'https://github.com/nicr9/daftpunk/tarball/%s' % VERSION,
         scripts = ['bin/daftpunk'],
-        install_requires=[
-            'sh',
-            ],
         license='MIT',
         )

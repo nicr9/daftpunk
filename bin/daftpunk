@@ -1,7 +1,7 @@
 #! /usr/bin/env python2.7
 from sys import argv
 from argparse import ArgumentParser, RawTextHelpFormatter
-from sh import docker, docker_compose
+import subprocess
 
 class DaftMeta(type):
     def __new__(mcls, name, bases, cdict):
@@ -62,23 +62,30 @@ class Daftpunk(object):
 
     @daftcommand
     def build(self, service=None):
-        args = (service, ) if service else ()
-        for line in docker_compose("build", *args, _iter=True):
-            print line.rstrip()
+        cmd = ["docker-compose", "build"]
+        if service:
+            cmd.append(service)
+        subprocess.call(cmd)
 
     @daftcommand
     def up(self):
-        for line in docker_compose("up", "-d", _iter=True):
-            print line.rstrip()
+        subprocess.call(["docker-compose", "up", "-d"])
 
     @daftcommand
     def start_worker(self):
-        docker("exec", "-d", "daftpunk_worker_1", "dp_worker")
+        subprocess.call(["docker", "exec", "-d", "daftpunk_worker_1", "dp_worker"])
 
     @daftcommand
     def search(self):
-        for line in docker("exec", "daftpunk_worker_1", "dp_searcher", _iter=True):
-            print line.rstrip()
+        subprocess.call(["docker", "exec", "daftpunk_worker_1", "dp_searcher"])
+
+    @daftcommand
+    def redis(self):
+        subprocess.call(["docker", "exec", "-it", "daftpunk_db_1", "redis-cli"])
+
+    @daftcommand
+    def kill(self):
+        subprocess.call(["docker-compose", "kill"])
 
 if __name__ == "__main__":
     dp = Daftpunk(argv)
