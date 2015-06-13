@@ -1,4 +1,4 @@
-from flask import Flask,json, Response, send_from_directory
+from flask import Flask, json, Response, send_from_directory
 import redis
 
 app = Flask(__name__, static_url_path='')
@@ -27,10 +27,10 @@ def show_properties():
     data = []
     for n in props:
         if r.get('daftpunk:%s:current_price' % n):
-            current_price = float(r.get('daftpunk:%s:current_price' % n).split(' ')[0])
+            current_price = float(r.get('daftpunk:%s:current_price' % n))
         else:
             current_price = None
-        
+
         data.append({
                 "id": n,
                 "address": r.get('daftpunk:%s:address' % n),

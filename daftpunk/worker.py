@@ -98,10 +98,13 @@ class DpParser(object):
             currency = price.string[0]
             value = price.string[1:].replace(',', '')
             logging.error( float(value.split(' ')[0]))
+            pricing = float(value.split(' ')[0])
+            if value.split(' ')[1] == 'Weekly':
+                pricing = pricing * 4
             logging.error(timestamp)
-            self.redis.zadd('daftpunk:%s:price' % id_, float(value.split(' ')[0]), timestamp)
+            self.redis.zadd('daftpunk:%s:price' % id_, pricing, timestamp)
             self.redis.set('daftpunk:%s:currency' % id_, currency)
-            self.redis.set('daftpunk:%s:current_price' % id_, value)
+            self.redis.set('daftpunk:%s:current_price' % id_, pricing)
 
     @scrape_once
     def ber_rating(self, id_, timestamp, soup):
