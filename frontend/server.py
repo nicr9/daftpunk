@@ -37,7 +37,8 @@ def show_properties():
                 "lat": r.get('daftpunk:%s:lat' % n),
                 "long": r.get('daftpunk:%s:long' % n),
                 "current_price": current_price,
-                "price": r.mget('daftpunk:%s:price' % n)
+                "bedrooms": r.get('daftpunk:%s:bedrooms' % n),
+                "bathrooms": r.get('daftpunk:%s:bathrooms' % n)
                 })
 
     resp = Response(json.dumps(data), status=200, mimetype='application/json')

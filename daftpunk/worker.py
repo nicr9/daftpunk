@@ -134,6 +134,24 @@ class DpParser(object):
 
         self.redis.set('daftpunk:%s:address' % id_, address)
 
+    @staticmethod
+    def get_header_texts(soup):
+        headers = soup.find_all(**{'class':'header_text'})
+        header_texts = [h.text for h in headers]
+        return header_texts
+
+    @scrape_update
+    def rooms(self, id_, timestamp, soup):
+        headers = self.get_header_texts(soup)
+
+        bedrooms = [h for h in headers if 'bed' in h.lower()]
+        bathrooms = [h for h in headers if 'bath' in h.lower()]
+
+        if bedrooms:
+            self.redis.set('daftpunk:%s:bedrooms' % id_, bedrooms[0])
+        if bathrooms:
+            self.redis.set('daftpunk:%s:bathrooms' % id_, bathrooms[0])
+
     @scrape_once
     def geocode(self, id_, timestamp, soup):
         if not self.is_geocoded(id_):
