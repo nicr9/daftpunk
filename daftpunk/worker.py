@@ -77,8 +77,8 @@ class DpParser(object):
                 elif hasattr(attr, '__scrape_update__'):
                     attr(id_, timestamp, soup)
             except Exception as e:
-                logging.error(traceback.format_exc())
                 logging.error("Encountered error parsing %s: %s" % (id_, e))
+                logging.error(traceback.format_exc())
                 continue
 
         # Send the rest of message contents to redis
@@ -97,11 +97,9 @@ class DpParser(object):
         if price:
             currency = price.string[0]
             value = price.string[1:].replace(',', '')
-            logging.error( float(value.split(' ')[0]))
             pricing = float(value.split(' ')[0])
             if value.split(' ')[1] == 'Weekly':
                 pricing = pricing * 4
-            logging.error(timestamp)
             self.redis.zadd('daftpunk:%s:price' % id_, pricing, timestamp)
             self.redis.set('daftpunk:%s:currency' % id_, currency)
             self.redis.set('daftpunk:%s:current_price' % id_, pricing)
