@@ -62,14 +62,14 @@ class Daftpunk(object):
 
     @daftcommand
     def build(self, service=None):
-        if service:
-            docker_compose("build", service)
-        else:
-            docker_compose("build")
+        args = (service, ) if service else ()
+        for line in docker_compose("build", *args, _iter=True):
+            print line.rstrip()
 
     @daftcommand
     def up(self):
-        docker_compose("up")
+        for line in docker_compose("up", "-d", _iter=True):
+            print line.rstrip()
 
     @daftcommand
     def start_worker(self):
@@ -77,7 +77,8 @@ class Daftpunk(object):
 
     @daftcommand
     def search(self):
-        docker("exec", "daftpunk_worker_1", "dp_searcher")
+        for line in docker("exec", "daftpunk_worker_1", "dp_searcher", _iter=True):
+            print line.rstrip()
 
 if __name__ == "__main__":
     dp = Daftpunk(argv)
