@@ -12,5 +12,7 @@ web:
     build: frontend
     links:
         - db:redis
+    volumes:
+        - frontend:/opt/frontend
     ports:
         - "5000:5000"
