@@ -48,7 +48,7 @@ def show_properties():
 def show_property(id):
     timestamps, prices = zip(*r.zrange('daftpunk:%s:price' % id, 0, -1, withscores=True))
     data = {
-            "id": id, 
+            "id": id,
             "address": r.get('daftpunk:%s:address' % id),
             "lat": r.get('daftpunk:%s:lat' % id),
             "long": r.get('daftpunk:%s:long' % id),

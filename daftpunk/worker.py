@@ -124,7 +124,7 @@ class DpParser(object):
                     phones.add('-'.join(phone_strs[i+1:]))
                     phone_strs = phone_strs[:i]
 
-        self.redis.sadd('daftpunk:%s:phone_numbers' % id_, *phones)
+            self.redis.sadd('daftpunk:%s:phone_numbers' % id_, *phones)
 
     @scrape_once
     def address(self, id_, timestamp, soup):
