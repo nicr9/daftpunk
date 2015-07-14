@@ -2,7 +2,6 @@ queue:
     image: rabbitmq
 worker:
     build: .
-    entrypoint: dp_worker
     links:
         - db:redis
         - queue:rabbitmq
@@ -12,7 +11,5 @@ web:
     build: frontend
     links:
         - db:redis
-    volumes:
-        - frontend:/opt/frontend
     ports:
-        - "5000:5000"
+        - 5000:5000
