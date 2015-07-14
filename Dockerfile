@@ -10,4 +10,4 @@ RUN python2.7 -c "import nltk; nltk.download('punkt')"
 
 ADD daftpunk/config/docker.json /etc/daftpunk/config.json
 
-ENTRYPOINT tail -f /var/log/messages
+ENTRYPOINT tail -f /var/log/dmesg
