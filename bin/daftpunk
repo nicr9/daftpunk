@@ -76,6 +76,15 @@ class Daftpunk(object):
         subprocess.call(["docker", "exec", "-d", "daftpunk_worker_1", "dp_worker"])
 
     @daftcommand
+    def go(self):
+        self.build()
+        self.up()
+        subprocess.call(
+                ["docker", "exec", "-it", "daftpunk_queue_1", "while ! nc -z localhost 5672; do sleep 0.5; done"]
+                )
+        self.start_worker()
+
+    @daftcommand
     def search(self):
         subprocess.call(["docker", "exec", "daftpunk_worker_1", "dp_searcher"])
 
@@ -86,6 +95,15 @@ class Daftpunk(object):
     @daftcommand
     def kill(self):
         subprocess.call(["docker-compose", "kill"])
+
+    @daftcommand
+    def rm(self):
+        subprocess.call(["docker-compose", "rm", "-f"])
+
+    @daftcommand
+    def clean(self):
+        self.kill()
+        self.rm()
 
 if __name__ == "__main__":
     dp = Daftpunk(argv)
