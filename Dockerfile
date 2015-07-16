@@ -10,4 +10,8 @@ RUN python2.7 -c "import nltk; nltk.download('punkt')"
 
 ADD daftpunk/config/docker.json /etc/daftpunk/config.json
 
-ENTRYPOINT tail -f /var/log/dmesg
+# Setup cron job
+RUN echo "0 0 * * * /usr/local/bin/dp_searcher" > /opt/cron_job
+RUN crontab /opt/cron_job
+
+ENTRYPOINT cron -f
