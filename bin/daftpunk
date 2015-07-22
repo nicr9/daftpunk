@@ -68,8 +68,11 @@ class Daftpunk(object):
         subprocess.call(cmd)
 
     @daftcommand
-    def up(self):
-        subprocess.call(["docker-compose", "up", "-d"])
+    def up(self, service=None):
+        cmd = ["docker-compose", "up", "-d"]
+        if service:
+            cmd.append(service)
+        subprocess.call(cmd)
 
     @daftcommand
     def start_worker(self):
