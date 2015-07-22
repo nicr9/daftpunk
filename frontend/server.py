@@ -61,5 +61,9 @@ def show_property(id):
     resp = Response(json.dumps(data), status=200, mimetype='application/json')
     return resp
 
+@app.route('/health')
+def health():
+    return Response('OK\n', status=200, mimetype='text/plain')
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0', debug=True)
