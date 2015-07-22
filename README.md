@@ -17,22 +17,26 @@ sudo python setup.cli install
 Then to build all the services and start them run the following:
 
 ```
-sudo daftpunk build
-sudo daftpunk up
+sudo daftpunk go
 ```
 
-This will start up the message queue, database and a worker container.
+This will start up the message queue, database, worker and a web frontend container.
 
-Then to perform a search and process any property pages run:
+The worker will perform a search every day at midnight and process any resulting property pages.
+
+If you're developing and would like to trigger a search at will, run the following:
 
 ```
-sudo daftpunk start_worker
 sudo daftpunk search
 ```
 
 At this point you can direct your browser to `localhost:5000` to see the frontend.
 
+**N.B.** If you're using docker-machine to host these containers remotely, you'll need to replace `localhost` with the IP of the docker-engine. You can find the engine IP by running `docker-machine ip <machine-name>`
+
 ### Manually on ubuntu
+
+**WARNING: Not officially supported, proceed with caution.**
 
 First install rabbitmq and enable the admin web console:
 
