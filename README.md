@@ -8,7 +8,7 @@ Scrapes details from daft.ie and stores it in Redis.
 
 For help getting docker and docker-compose installed [checkout this page.](https://docs.docker.com/compose/install/)
 
-First install the daftpunk CLI tool:
+Next, you'll want to install the daftpunk CLI tool:
 
 ```
 sudo python setup.cli install
@@ -20,11 +20,11 @@ Then to build all the services and start them run the following:
 sudo daftpunk go
 ```
 
-This will start up the message queue, database, worker and a web frontend container.
+This starts up the message queue, database, worker and a web frontend as containers.
 
-The worker will perform a search every day at midnight and process any resulting property pages.
+The worker is set up to perform a search and process results every day at midnight.
 
-If you're developing and would like to trigger a search at will, run the following:
+If you're a developer and need to trigger a search at will, run the following:
 
 ```
 sudo daftpunk search
@@ -32,11 +32,22 @@ sudo daftpunk search
 
 At this point you can direct your browser to `localhost:5000` to see the frontend.
 
-**N.B.** If you're using docker-machine to host these containers remotely, you'll need to replace `localhost` with the IP of the docker-engine. You can find the engine IP by running `docker-machine ip <machine-name>`
+**N.B.** If you're using docker-machine to host these containers remotely, you'll need to replace `localhost` with the IP of the docker-engine.
+You can find the engine IP by running:
+
+```
+docker-machine ip <machine-name>
+```
 
 ### Manually on ubuntu
 
 **WARNING: Not officially supported, proceed with caution.**
+
+These instructions describe how to set up daftpunk without using docker. For this you won't need to install the daftpunk CLI tool (because it's purpose is mostly to simplify long docker commands.)
+
+If you try this and find the instructions here to be inaccurate/insufficient, please open a pull request. You're help will be greatly appriciated (even if it's just correcting my awful typos!)
+
+If, on the other hand, you try this and run into blocking issues, get in contact, we're happy to help!
 
 First install rabbitmq and enable the admin web console:
 
@@ -73,10 +84,10 @@ Then to perform a search and process any property pages run:
 
 ```
 dp_searcher
-dp_worker
+dp_worker # This command will block indefinitely
 ```
 
-Finally start the frontend server:
+Finally, in an other shell, start the frontend server:
 
 ```
 cd frontend
@@ -85,22 +96,13 @@ python server.py
 
 This will be served on `localhost:5000`.
 
-## Redis schema
+## Author
 
-* daftpunk:properties -> {<prop_id>, ...}
-* daftpunk:<prop_id>:timestamps -> [<timestamp>, ...]
-* daftpunk:<prop_id>:html -> string
-* daftpunk:<prop_id>:category -> string
+Name: Nic Roland
+Email: nicroland9@gmail.com
+Twitter: @nicr9_
 
-* daftpunk:<prop_id>:price -> z{<timestamp>:string, ...}
-* daftpunk:<prop_id>:currency -> string
-* daftpunk:<prop_id>:current_price -> string
-* daftpunk:<prop_id>:ber -> string
-* daftpunk:<prop_id>:phone_numbers -> {string}
-* daftpunk:<prop_id>:address -> string
-* daftpunk:<prop_id>:lat -> string
-* daftpunk:<prop_id>:long -> long
-* daftpunk:<prop_id>:description -> string
-* daftpunk:<prop_id>:tokens -> z{string: float, ...}
-* daftpunk:<prop_id>:image_urls -> [url, ...]
-* daftpunk:<prop_id>:images -> [binary, ...]
+## Contributors
+
+* [Peter Keogh](https://github.com/keoghpe)
+* [Kingsley Kelly](https://github.com/KingsleyKelly)
