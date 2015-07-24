@@ -4,9 +4,11 @@ Scrapes details from daft.ie and stores it in Redis.
 
 ## Installation
 
-### Using docker
+### Install/Run on Docker
 
 For help getting docker and docker-compose installed [checkout this page.](https://docs.docker.com/compose/install/)
+
+You'll also need [python2.7](https://www.python.org/downloads/release/python-279/) and the [setuptools package](https://pypi.python.org/pypi/setuptools)!
 
 Next, you'll want to install the daftpunk CLI tool:
 
@@ -32,16 +34,18 @@ sudo daftpunk search
 
 At this point you can direct your browser to `localhost:5000` to see the frontend.
 
-**N.B.** If you're using docker-machine to host these containers remotely, you'll need to replace `localhost` with the IP of the docker-engine.
+**N.B.**
+
+If you're using docker-machine to host these containers remotely, you'll need to replace `localhost` with the IP of the docker-engine.
 You can find the engine IP by running:
 
 ```
 docker-machine ip <machine-name>
 ```
 
-### Manually on ubuntu
+### Install Manually on Ubuntu
 
-**WARNING: Not officially supported, proceed with caution.**
+**WARNING: Not officially tested/maintained, proceed with caution.**
 
 These instructions describe how to set up daftpunk without using docker. For this you won't need to install the daftpunk CLI tool (because it's purpose is mostly to simplify long docker commands.)
 
