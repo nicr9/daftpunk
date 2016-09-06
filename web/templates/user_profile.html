@@ -1,0 +1,17 @@
+{% extends "index.html" %}
+{% block left_panel %}
+<p><a href="/user/{{ user }}">Profile</a></p>
+{% endblock %}
+{% block main_content %}
+      <h1>Hey {{ user }}!</h1>
+      <p>Select a region to get started.</p>
+      <hr>
+{% endblock %}
+{% block right_panel %}
+      <div class="well">
+        <p>Property Photo</p>
+      </div>
+      <div class="well">
+        <p>Property Photo</p>
+      </div>
+{% endblock %}

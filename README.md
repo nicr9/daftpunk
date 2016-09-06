@@ -2,6 +2,31 @@
 
 Scrapes details from daft.ie and stores it in Redis.
 
+## Rewrite
+
+*N.B.* I'm currently embarking on a complete rewrite of daftpunk!
+
+Both the old and new projects are currently visible within this branch so to
+clarify, the following paths describe files relating to the old project:
+
+* bin/\*
+* daftpunk/\*
+* frontend/\*
+* docker-compose.yml
+* Dockerfile
+* LICENSE
+* README.md
+* setup.\*
+
+And the following belong to the new version of the project:
+
+* dp2
+* web
+
+The reason for the rewrite is so I can take a whole new approach to the
+architecture and apply a lot of what I've learned about web scraping to achieve
+a much cleaner and more generally useful project.
+
 ## Installation
 
 ### Install/Run on Docker
@@ -102,8 +127,8 @@ This will be served on `localhost:5000`.
 
 ## Author
 
-Name: Nic Roland
-Email: nicroland9@gmail.com
+Name: Nic Roland<br>
+Email: nicroland9@gmail.com<br>
 Twitter: @nicr9_
 
 ## Contributors
