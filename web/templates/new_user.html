@@ -3,7 +3,7 @@
       <p><a href="/features">Features</a></p>
 {% endblock %}
 {% block main_content %}
-      <h1>Sign into your account</h1>
+      <h1>Create Your Account</h1>
 
       {% with messages = get_flashed_messages() %}
         {% if messages %}
@@ -17,12 +17,12 @@
 
       <form method="POST" action="/login">
         {{ form.csrf_token }}
+        {{ form.email.label }} {{ form.email(size=20) }}<br>
         {{ form.username.label }} {{ form.username(size=20) }}<br>
         {{ form.password.label }} {{ form.password(size=20) }}<br>
-        <input type="submit" value="Login">
+        {{ form.password2.label }} {{ form.password2(size=20) }}<br>
+        <input type="submit" value="Sign up">
       </form>
-      <br>
-      <a href="/new_user">Register an account</a>
 
       <hr>
 {% endblock %}

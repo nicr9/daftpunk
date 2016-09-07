@@ -4,6 +4,7 @@ from flask import Flask, render_template, redirect, flash, request, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_login import login_required, LoginManager, login_user
 from wtforms import TextField, PasswordField
+from wtforms.fields.html5 import EmailField
 from flask_wtf import Form
 
 
@@ -53,6 +54,12 @@ class LoginForm(Form):
     username = TextField('Username')
     password = PasswordField('Password')
 
+class NewUserForm(Form):
+    email = EmailField('Email')
+    username = TextField('Username')
+    password = PasswordField('Password')
+    password2 = PasswordField('Retype Password')
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -67,7 +74,16 @@ def login():
 
     return render_template('login.html', form=form)
 
-#@app.route('/newuser', methods=['GET', 'POST'])
+@app.route('/new_user', methods=['GET', 'POST'])
+def new_user():
+    form = NewUserForm()
+    if form.validate_on_submit():
+        # TODO: Add user to DB
+        # Login user
+        # Redirect to /user/{username}
+        pass
+
+    return render_template('new_user.html', form=form)
 
 @app.route('/')
 def homepage():
