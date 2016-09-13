@@ -15,9 +15,8 @@
         {% endif %}
       {% endwith %}
 
-      <form method="POST" action="/login">
+      <form method="POST" action="/new_user">
         {{ form.csrf_token }}
-        {{ form.email.label }} {{ form.email(size=20) }}<br>
         {{ form.username.label }} {{ form.username(size=20) }}<br>
         {{ form.password.label }} {{ form.password(size=20) }}<br>
         {{ form.password2.label }} {{ form.password2(size=20) }}<br>

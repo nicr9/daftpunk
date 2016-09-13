@@ -4,7 +4,6 @@ from flask import Flask, render_template, redirect, flash, request, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_login import login_required, LoginManager, login_user
 from wtforms import TextField, PasswordField
-from wtforms.fields.html5 import EmailField
 from flask_wtf import Form
 
 
@@ -22,17 +21,21 @@ db = SQLAlchemy(app)
 class User(db.Model):
     __tablename__ = 'user'
 
-    email = db.Column(db.String, primary_key=True)
+    username = db.Column(db.String, primary_key=True)
     password = db.Column(db.String)
     authenticated = db.Column(db.Boolean, default=False)
+
+    def __init__(self, form):
+        self.username = form.username.data
+        self.password = form.password.data
 
     def is_active(self):
         """True, as all users are active."""
         return True
 
     def get_id(self):
-        """Return the email address to satisfy Flask-Login's requirements."""
-        return self.email
+        """Return the username to satisfy Flask-Login's requirements."""
+        return self.username
 
     def is_authenticated(self):
         """Return True if the user is authenticated."""
@@ -55,7 +58,6 @@ class LoginForm(Form):
     password = PasswordField('Password')
 
 class NewUserForm(Form):
-    email = EmailField('Email')
     username = TextField('Username')
     password = PasswordField('Password')
     password2 = PasswordField('Retype Password')
@@ -78,10 +80,21 @@ def login():
 def new_user():
     form = NewUserForm()
     if form.validate_on_submit():
-        # TODO: Add user to DB
-        # Login user
-        # Redirect to /user/{username}
-        pass
+        if form.password.data != form.password2.data:
+            flash("Passwords don't match!")
+            return redirect('/new_user')
+
+        user = User(form)
+
+        try:
+            db.session.add(user)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
+
+        login_user(user)
+        return redirect('/user/{}'.format(form.username.data))
 
     return render_template('new_user.html', form=form)
 
@@ -89,10 +102,11 @@ def new_user():
 def homepage():
     return render_template('homepage.html')
 
-@app.route('/user/<user>')
+@app.route('/user/<username>')
 @login_required
-def user_profile(user):
-    return render_template('user_profile.html')
+def user_profile(username):
+    user = load_user(username)
+    return render_template('user_profile.html', user=user)
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)
