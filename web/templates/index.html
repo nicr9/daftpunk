@@ -51,15 +51,21 @@
         <span class="icon-bar"></span>
         <span class="icon-bar"></span>
       </button>
-      <a class="navbar-brand" href="#">Daftpunk</a>
+      <a class="navbar-brand" href="/">Daftpunk</a>
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
-      <ul class="nav navbar-nav">
-        <li class="active"><a href="#">Home</a></li>
+      {% if user is defined %}
+      <ul class="nav navbar-nav navbar-right">
+        <li><a href="/signout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
       </ul>
+      <ul class="nav navbar-nav navbar-right">
+          <li class="active"><a href="/user/{{ user.username }}">Profile</a></li>
+      </ul>
+      {% else %}
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/login"><span class="glyphicon glyphicon-log-in"></span> Login</a></li>
       </ul>
+      {% endif %}
     </div>
   </div>
 </nav>
@@ -81,7 +87,7 @@
 </div>
 
 <footer class="container-fluid text-center">
-  <p>Nic Roland wos ere</p>
+  <p>© Daftpunk 2015-2016</p>
 </footer>
 
 </body>

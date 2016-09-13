@@ -102,6 +102,10 @@ def new_user():
 def homepage():
     return render_template('homepage.html')
 
+@app.route('/features')
+def features():
+    return render_template('features.html')
+
 @app.route('/user/<username>')
 @login_required
 def user_profile(username):
