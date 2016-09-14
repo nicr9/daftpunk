@@ -2,7 +2,7 @@ import os
 
 from flask import Flask, render_template, redirect, flash, request, abort
 from flask.ext.sqlalchemy import SQLAlchemy
-from flask_login import login_required, LoginManager, login_user
+from flask_login import login_required, LoginManager, login_user, logout_user, current_user
 from wtforms import TextField, PasswordField
 from flask_wtf import Form
 
@@ -111,6 +111,12 @@ def features():
 def user_profile(username):
     user = load_user(username)
     return render_template('user_profile.html', user=user)
+
+@app.route('/signout')
+@login_required
+def signout():
+    logout_user()
+    return redirect('/')
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", debug=True)

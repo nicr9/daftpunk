@@ -54,12 +54,12 @@
       <a class="navbar-brand" href="/">Daftpunk</a>
     </div>
     <div class="collapse navbar-collapse" id="myNavbar">
-      {% if user is defined %}
+      {% if current_user.is_authenticated %}
       <ul class="nav navbar-nav navbar-right">
         <li><a href="/signout"><span class="glyphicon glyphicon-log-out"></span> Logout</a></li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
-          <li class="active"><a href="/user/{{ user.username }}">Profile</a></li>
+          <li class="active"><a href="/user/{{ current_user.username }}">Profile</a></li>
       </ul>
       {% else %}
       <ul class="nav navbar-nav navbar-right">

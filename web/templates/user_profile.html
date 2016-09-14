@@ -1,9 +1,9 @@
 {% extends "index.html" %}
 {% block left_panel %}
-<p><a href="/user/{{ user }}">Profile</a></p>
+<p><a href="/user/{{ current_user.username }}">Profile</a></p>
 {% endblock %}
 {% block main_content %}
-      <h1>Hey {{ user.username }}!</h1>
+      <h1>Hey {{ current_user.username }}!</h1>
       <p>Select a region to get started.</p>
       <hr>
 {% endblock %}
