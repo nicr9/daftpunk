@@ -1,7 +1,9 @@
 FROM ubuntu:14.04
 MAINTAINER Nic Roland "nicroland9@gmail.com"
 
-RUN apt-get install -y python python-setuptools
+ENV TERM xterm
+
+RUN apt-get update && apt-get install -y python python-setuptools
 
 ADD . /opt/daftpunk
 WORKDIR /opt/daftpunk
