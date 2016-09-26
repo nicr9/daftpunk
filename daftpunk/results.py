@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""
-    
-"""
-
+import os
 import re
 import bs4
 import urllib
@@ -15,7 +12,112 @@ def get_gps_coordinates(number, street):
     pass
 
 
-class PropertySummary(object):
+class DaftSummaryResultsIterator(object):
+
+    def __init__(self, parent):
+
+        self.parent = parent
+        self.offset = 0
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        
+        url  = self.parent.get_page_url(self.offset)
+        page = self.parent.get_me_stuff(url)
+
+        if self.parent.has_results(page):
+            self.offset += 10
+            return self.offset, url, page
+        else:
+            raise StopIteration()
+
+
+class DaftSummaryPageIterator(object):
+
+    def __init__(self, page):
+        self.items = page.find_all("div", attrs={"class": "box"})
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+
+        try:
+            item = self.items.pop(0)
+            while item.find("h2") is None:
+                item = self.items.pop(0)
+            return item
+
+        except IndexError:
+            raise StopIteration()
+
+
+class DaftSummaryResults(object):
+
+    def __init__(self, **kwargs):
+
+        self.set_target(**kwargs)
+        self.set_mode(**kwargs)
+
+    def set_target(self, **kwargs):
+
+        # Results page settings, use defaults
+
+        county = kwargs.get("county", "ireland")
+        offer  = kwargs.get("offer",  "houses-for-sale")
+        area   = kwargs.get("area",    None)
+
+        path = os.path.join(county, offer)
+
+        if area is not None:
+            path = os.path.join(path, area)
+
+        self.target = urlparse.urljoin("http://www.daft.ie", path)
+
+    def set_mode(self, **kwargs):
+
+        mode  = kwargs.get("mode", "soup")
+        modes = "soup", "response"
+
+        if mode not in modes:
+            error = "'{}' is not a valid mode, pick one of these '{}'"
+            raise ValueError(error.format(mode, modes))
+
+        self.mode = mode
+
+    def iterator(self):
+        return DaftSummaryResultsIterator(self)
+
+    def has_results(self, item):
+        soup = None
+        if not isinstance(item, bs4.BeautifulSoup):
+            soup = bs4.BeautifulSoup(item.content, "html.parser")
+        else:
+            soup = item
+        return soup.find("div", attrs={"id": "gc_content"}) is None
+        
+    def get_page_url(self, offset):
+        params = {"offset" : offset}
+        qstr = urllib.urlencode(params)
+        endpoint = "{}?{}".format(self.target, qstr)
+        return endpoint
+
+    def get_me_stuff(self, url):
+        
+        response = requests.get(url)
+        stuff    = None
+
+        if self.mode == "soup":
+            stuff = bs4.BeautifulSoup(response.content, "html.parser")
+        elif self.mode == "response":
+            stuff = response
+
+        return stuff
+
+
+class PropertySummaryParser(object):
     
     """
         Describes the information we want about the property
@@ -143,53 +245,11 @@ class PropertySummary(object):
             self.estate_agent, self.link
         )
 
-
-class DaftSummaryResultPages(object):
-
-    def __init__(self, location="dublin", offer="houses-for-sale"):
-        
-        self.target = urlparse.urljoin(
-            "http://www.daft.ie", 
-            "{}/{}".format(location, offer)
-        )
-        
-        self.offset  = 0
-
-    def __iter__(self):
-        return self
-        
-    @staticmethod
-    def is_property(suspected_property):
-        return suspected_property.find("h2") is not None
-
-    @staticmethod
-    def has_results(page):
-        return page.find("div", attrs={"id": "gc_content"}) is None
-
-    def get_page_url(self, offset):
-        params = {"offset" : offset}
-        qstr = urllib.urlencode(params)
-        return "{}?{}".format(self.target, qstr)
-
-    def get_soup(self, offset):
-        response = requests.get(self.get_page_url())
-        return bs4.BeautifulSoup(response.content, "html.parser")
-
-    def next(self):
-
-        if DaftSummaryResultPages.has_results():
-            soup = self.get_soup(self.offset)
-            self.offset += 10
-            return soup
-        else:
-            raise StopIteration()
-
-
 def gather_summary_results(self):
 
     results = []
 
-    for page in DaftSummaryResultPages():
+    for page in DaftSummaryResults():
 
         # get all property summaries on the page
         items = page.find_all("div", attrs={"class": "box"})

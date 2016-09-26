@@ -6,3 +6,4 @@ daftpunk_cli.egg-info/
 dist/
 venv/
 *.sqlite
+**/.cache
