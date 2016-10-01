@@ -3,9 +3,15 @@ import os
 from flask import Flask, render_template, redirect, flash, request, abort
 from flask.ext.sqlalchemy import SQLAlchemy
 from flask_login import login_required, LoginManager, login_user, logout_user, current_user
-from wtforms import TextField, PasswordField
+from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
+from dp2.client import DaftClient
 
+def get_choices(N):
+    choices = [(val, key) for key, val in N.iteritems()]
+    choices.insert(0, (0, '---'))
+
+    return choices
 
 app = Flask(__name__)
 
@@ -15,6 +21,8 @@ app.config['CSRF_ENABLED'] = True
 
 login_manager = LoginManager()
 login_manager.init_app(app)
+
+## Models
 
 db = SQLAlchemy(app)
 
@@ -51,7 +59,7 @@ def load_user(user_id):
 
 db.create_all()
 
-## Routes
+## Forms
 
 class LoginForm(Form):
     username = TextField('Username')
@@ -61,6 +69,12 @@ class NewUserForm(Form):
     username = TextField('Username')
     password = PasswordField('Password')
     password2 = PasswordField('Retype Password')
+
+class RegionForm(Form):
+    county = SelectField('County', choices=[])
+    region = SelectField('Region', choices=[])
+
+## Routes
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -111,6 +125,18 @@ def features():
 def user_profile(username):
     user = load_user(username)
     return render_template('user_profile.html', user=user)
+
+@app.route('/new/region')
+def new_region():
+    client = DaftClient('nicr9', 'XuX4h*keFLux') # TODO: don't leave user creds in code
+    form = RegionForm()
+    if form.validate_on_submit():
+        pass
+
+    form.county.choices = get_choices(client.counties)
+
+    return render_template('new_region.html', form=form)
+
 
 @app.route('/signout')
 @login_required

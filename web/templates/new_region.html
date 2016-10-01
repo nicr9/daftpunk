@@ -4,9 +4,13 @@
 <p><a href="/new/region">Regions</a></p>
 {% endblock %}
 {% block main_content %}
-      <h1>Hey {{ current_user.username }}!</h1>
-      <p>Add a region to get started.</p>
-      <hr>
+      <h1>Subscribe to a region:</h1>
+      <form method="POST" action="/new_region">
+        {{ form.csrf_token }}
+        {{ form.county.label }} {{ form.county() }}<br>
+        {{ form.region.label }} {{ form.region() }}<br>
+        <input type="submit" value="Subscribe">
+      </form>
 {% endblock %}
 {% block right_panel %}
       <div class="well">
