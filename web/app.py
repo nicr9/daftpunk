@@ -1,4 +1,5 @@
 import os
+import json
 
 from flask import Flask, render_template, redirect, flash, request, abort
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -7,11 +8,20 @@ from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
 
+## Env vars
+
+DAFT_USER = os.environ['DAFT_USER']
+DAFT_PASSWD = os.environ['DAFT_PASSWD']
+
+## Util functions
+
 def get_choices(N):
     choices = [(val, key) for key, val in N.iteritems()]
     choices.insert(0, (0, '---'))
 
     return choices
+
+## Set up flask
 
 app = Flask(__name__)
 
@@ -126,17 +136,28 @@ def user_profile(username):
     user = load_user(username)
     return render_template('user_profile.html', user=user)
 
-@app.route('/new/region')
+@app.route('/get/regions', methods=['POST'])
+@login_required
+def get_regions():
+    key = request.form.keys()[0]
+    if key:
+        client = DaftClient(DAFT_USER, DAFT_PASSWD)
+        choices = {val: key for key, val in client.counties.iteritems()}
+        data = client.get_regions(choices[key])
+        return json.dumps(data), 200
+    return '[]', 400
+
+@app.route('/new/region', methods=['GET', 'POST'])
+@login_required
 def new_region():
-    client = DaftClient('nicr9', 'XuX4h*keFLux') # TODO: don't leave user creds in code
+    client = DaftClient(DAFT_USER, DAFT_PASSWD)
     form = RegionForm()
     if form.validate_on_submit():
-        pass
+        pass # TODO: Create a db model to store this
 
     form.county.choices = get_choices(client.counties)
 
     return render_template('new_region.html', form=form)
-
 
 @app.route('/signout')
 @login_required

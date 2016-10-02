@@ -1,4 +1,33 @@
 {% extends "index.html" %}
+{% block script %}
+<script>
+    function submit_county(){
+        console.log("Loading regions...");
+
+        var value = document.getElementById('county').value;
+        $.ajax(
+                {
+                    url: '/get/regions',
+                    method: 'POST',
+                    data: value,
+                    success: function(data) {
+                        var regions = JSON.parse(data);
+                        for(var i=0; i < regions.length; i++) {
+                            var opt = document.createElement("option");
+                            opt.value=regions[i];
+                            opt.innerHTML = regions[i];
+
+                            document.getElementById('region').add(opt);
+                        }
+                    },
+                    failure: function(data) {
+                        console.log("No county selected; not updating region dropdown")
+                    },
+                }
+              );
+    };
+</script>
+{% endblock %}
 {% block left_panel %}
 <p><a href="/user/{{ current_user.username }}">Profile</a></p>
 <p><a href="/new/region">Regions</a></p>
@@ -7,7 +36,7 @@
       <h1>Subscribe to a region:</h1>
       <form method="POST" action="/new_region">
         {{ form.csrf_token }}
-        {{ form.county.label }} {{ form.county() }}<br>
+        {{ form.county.label }} {{ form.county(onchange="submit_county()") }}<br>
         {{ form.region.label }} {{ form.region() }}<br>
         <input type="submit" value="Subscribe">
       </form>
