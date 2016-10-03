@@ -16,7 +16,7 @@ DAFT_PASSWD = os.environ['DAFT_PASSWD']
 ## Util functions
 
 def get_choices(N):
-    choices = [(val, key) for key, val in N.iteritems()]
+    choices = [(key, key) for key, val in N.iteritems()]
     choices.insert(0, (0, '---'))
 
     return choices
@@ -62,6 +62,19 @@ class User(db.Model):
     def is_anonymous(self):
         """False, as anonymous users aren't supported."""
         return False
+
+class Region(db.Model):
+    __tablename__ = 'region'
+
+    id = db.Column(db.Integer, primary_key=True)
+    userid = db.Column(db.String, default=False)
+    county = db.Column(db.String, default=False)
+    region = db.Column(db.String, default=False)
+
+    def __init__(self, userid, form):
+        self.userid = userid
+        self.county = form.county.data
+        self.region = form.region.data
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -142,18 +155,27 @@ def get_regions():
     key = request.form.keys()[0]
     if key:
         client = DaftClient(DAFT_USER, DAFT_PASSWD)
-        choices = {val: key for key, val in client.counties.iteritems()}
-        data = client.get_regions(choices[key])
+        data = client.get_regions(key)
         return json.dumps(data), 200
     return '[]', 400
 
-@app.route('/new/region', methods=['GET', 'POST'])
+@app.route('/new_region', methods=['GET', 'POST'])
 @login_required
 def new_region():
     client = DaftClient(DAFT_USER, DAFT_PASSWD)
+
     form = RegionForm()
-    if form.validate_on_submit():
-        pass # TODO: Create a db model to store this
+    if form.is_submitted():
+        region = Region(current_user.get_id(), form)
+
+        try:
+            db.session.add(region)
+            db.session.commit()
+        except:
+            db.session.rollback()
+            raise
+
+        return redirect('user/{}'.format(current_user.get_id()))
 
     form.county.choices = get_choices(client.counties)
 
