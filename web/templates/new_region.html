@@ -1,4 +1,4 @@
-{% extends "index.html" %}
+{% extends "logged_in.html" %}
 {% block script %}
 <script>
     function submit_county(){
@@ -28,10 +28,6 @@
     };
 </script>
 {% endblock %}
-{% block left_panel %}
-<p><a href="/user/{{ current_user.username }}">Profile</a></p>
-<p><a href="/new_region">Regions</a></p>
-{% endblock %}
 {% block main_content %}
       <h1>Subscribe to a region:</h1>
       <form method="POST" action="/new_region">
@@ -40,12 +36,4 @@
         {{ form.region.label }} {{ form.region() }}<br>
         <input type="submit" value="Subscribe">
       </form>
-{% endblock %}
-{% block right_panel %}
-      <div class="well">
-        <p>Property Photo</p>
-      </div>
-      <div class="well">
-        <p>Property Photo</p>
-      </div>
 {% endblock %}

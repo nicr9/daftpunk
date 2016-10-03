@@ -1,0 +1,13 @@
+{% extends "index.html" %}
+{% block left_panel %}
+<p><a href="/user/{{ current_user.username }}">Dashboard</a></p>
+<p><a href="/new_region">Add Region</a></p>
+{% endblock %}
+{% block right_panel %}
+      <div class="well">
+        <p>Property Photo</p>
+      </div>
+      <div class="well">
+        <p>Property Photo</p>
+      </div>
+{% endblock %}

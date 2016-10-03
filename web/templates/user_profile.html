@@ -1,18 +1,6 @@
-{% extends "index.html" %}
-{% block left_panel %}
-<p><a href="/user/{{ current_user.username }}">Profile</a></p>
-<p><a href="/new_region">Regions</a></p>
-{% endblock %}
+{% extends "logged_in.html" %}
 {% block main_content %}
       <h1>Hey {{ current_user.username }}!</h1>
       <p>Add a region to get started.</p>
       <hr>
-{% endblock %}
-{% block right_panel %}
-      <div class="well">
-        <p>Property Photo</p>
-      </div>
-      <div class="well">
-        <p>Property Photo</p>
-      </div>
 {% endblock %}
