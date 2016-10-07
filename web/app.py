@@ -147,7 +147,8 @@ def features():
 @login_required
 def user_profile(username):
     user = load_user(username)
-    return render_template('user_profile.html', user=user)
+    regions = Region.query.filter_by(userid=user.username).all()
+    return render_template('user_profile.html', user=user, regions=regions)
 
 @app.route('/get/regions', methods=['POST'])
 @login_required

@@ -1,6 +1,43 @@
 {% extends "logged_in.html" %}
+{% block script %}
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+{% endblock %}
 {% block main_content %}
       <h1>Hey {{ current_user.username }}!</h1>
+      {% if regions | length > 0 %}
+      <table>
+          <tr>
+              <th>County</th>
+              <th>Region</th>
+          </tr>
+
+          {% for region in regions %}
+          <tr>
+              <td>{{ region.county }}</td>
+              <td>{{ region.region }}</td>
+          </tr>
+          {% endfor %}
+      </table>
+
+      {% else %}
       <p>Add a region to get started.</p>
+      {% endif %}
+
       <hr>
 {% endblock %}
