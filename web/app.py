@@ -66,10 +66,9 @@ class User(db.Model):
 class Region(db.Model):
     __tablename__ = 'region'
 
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String, default=False)
-    county = db.Column(db.String, default=False)
-    region = db.Column(db.String, default=False)
+    username = db.Column(db.String, db.ForeignKey('user.username'), primary_key=True)
+    county = db.Column(db.String, primary_key=True)
+    region = db.Column(db.String, primary_key=True)
 
     def __init__(self, username, form):
         self.username = username
