@@ -67,18 +67,18 @@ class Region(db.Model):
     __tablename__ = 'region'
 
     id = db.Column(db.Integer, primary_key=True)
-    userid = db.Column(db.String, default=False)
+    username = db.Column(db.String, default=False)
     county = db.Column(db.String, default=False)
     region = db.Column(db.String, default=False)
 
-    def __init__(self, userid, form):
-        self.userid = userid
+    def __init__(self, username, form):
+        self.username = username
         self.county = form.county.data
         self.region = form.region.data
 
 @login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(user_id)
+def load_user(username):
+    return User.query.get(username)
 
 db.create_all()
 
@@ -147,7 +147,7 @@ def features():
 @login_required
 def user_profile(username):
     user = load_user(username)
-    regions = Region.query.filter_by(userid=user.username).all()
+    regions = Region.query.filter_by(username=user.username).all()
     return render_template('user_profile.html', user=user, regions=regions)
 
 @app.route('/get/regions', methods=['POST'])
