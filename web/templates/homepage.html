@@ -1,6 +1,10 @@
 {% extends "logged_out.html" %}
 {% block main_content %}
       <h1>Welcome to Daftpunk!</h1>
+      {% if current_user.is_authenticated %}
+      <p>Proceed to your <a href="/user/{{ current_user.username }}">profile page</a>!</p>
+      {% else %}
       <p>Please sign in or create an account to get started!</p>
+      {% endif %}
       <hr>
 {% endblock %}
