@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: daftpunk-web
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: flask
+        context: daftpunk
+    spec:
+      containers:
+      - name: flask
+        image: nicr9/dp2_web:latest
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DAFT_USER
+          valueFrom:
+            configMapKeyRef:
+              name: daftpunk-config
+              key: daft.username
+        - name: DAFT_PASSWD
+          valueFrom:
+            configMapKeyRef:
+              name: daftpunk-config
+              key: daft.password
+        - name: SECRET_KEY
+          valueFrom:
+            configMapKeyRef:
+              name: daftpunk-config
+              key: secret.key
+        - name: DATABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: daftpunk-config
+              key: db.url

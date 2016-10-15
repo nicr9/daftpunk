@@ -1,0 +1,15 @@
+kind: Service
+apiVersion: v1
+metadata:
+  name: daftpunk-web
+  labels:
+    context: daftpunk
+spec:
+  selector:
+    app: flask
+    context: daftpunk
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 5000
+      nodePort: 30002

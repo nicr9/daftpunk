@@ -2,7 +2,7 @@ import os
 import json
 
 from flask import Flask, render_template, redirect, flash, request, abort
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required, LoginManager, login_user, logout_user, current_user
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
@@ -25,6 +25,7 @@ def get_choices(N):
 
 app = Flask(__name__)
 
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] =              os.getenv('SECRET_KEY',       'THIS IS AN INSECURE SECRET')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL',     'sqlite:///basic_app.sqlite')
 app.config['CSRF_ENABLED'] = True
