@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: daftpunk-postgres
+  labels:
+    app: postgres
+    context: daftpunk
+spec:
+  containers:
+    - name: postgres
+      image: postgres:latest
+      env:
+        - name: "POSTGRES_USER"
+          value: "daftpunk"
+        - name: "POSTGRES_PASSWORD"
+          valueFrom:
+            configMapKeyRef:
+              name: daftpunk-config
+              key: db.password
+        - name: "POSTGRES_DATABASE"
+          value: "daftpunk"
+      ports:
+        - containerPort: 5432

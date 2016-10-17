@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: daftpunk-postgres
+  labels:
+    context: daftpunk
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 30306
+  type: NodePort
+  selector:
+    app: postgres
+    context: daftpunk

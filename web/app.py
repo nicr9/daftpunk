@@ -1,12 +1,16 @@
 import os
 import json
 
+print "importing modules..."
+
 from flask import Flask, render_template, redirect, flash, request, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import login_required, LoginManager, login_user, logout_user, current_user
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
+
+print "All modules imported!"
 
 ## Env vars
 
@@ -23,6 +27,7 @@ def get_choices(N):
 
 ## Set up flask
 
+print "Initialising flask..."
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -30,11 +35,13 @@ app.config['SECRET_KEY'] =              os.getenv('SECRET_KEY',       'THIS IS A
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL',     'sqlite:///basic_app.sqlite')
 app.config['CSRF_ENABLED'] = True
 
+print "Initialising LoginManager..."
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 ## Models
 
+print "Initialising SQLAlchemy..."
 db = SQLAlchemy(app)
 
 class User(db.Model):
@@ -80,7 +87,9 @@ class Region(db.Model):
 def load_user(username):
     return User.query.get(username)
 
+print "Initialising database..."
 db.create_all()
+print "Done!"
 
 ## Forms
 
@@ -189,4 +198,5 @@ def signout():
     return redirect('/')
 
 if __name__ == "__main__":
+    print "Testing main..."
     app.run(host="0.0.0.0", debug=True)

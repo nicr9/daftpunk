@@ -7,8 +7,6 @@ test: down
 	docker run \
 		-p 5000:5000 \
 		-d \
-		-e DAFT_USER=nicr9 \
-		-e DAFT_PASSWD=XuX4h*keFLux \
 		--name daftpunk-web \
 		nicr9/dp2_web:latest
 
@@ -30,11 +28,15 @@ rebuild:
 
 deploy:
 	kubectl apply -f manifests/daftpunk-configmap.yaml
+	kubectl apply -f manifests/postgres-service.yaml
+	kubectl apply -f manifests/postgres-pod.yaml
 	kubectl apply -f manifests/daftpunk-service.yaml
 	kubectl apply -f manifests/daftpunk-deployment.yaml
 
 teardown:
 	kubectl delete -f manifests/daftpunk-configmap.yaml
+	kubectl delete -f manifests/postgres-service.yaml
+	kubectl delete -f manifests/postgres-pod.yaml
 	kubectl delete -f manifests/daftpunk-service.yaml
 	kubectl delete -f manifests/daftpunk-deployment.yaml
 
@@ -48,3 +50,6 @@ python:
 	kubectl run \
 		-it --image=nicr9/dp2_web:latest --rm \
 		sh -- python /usr/src/app/app.py
+
+psql:
+	kubectl exec -it daftpunk-postgres -- psql -U daftpunk -W

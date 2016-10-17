@@ -7,4 +7,5 @@ data:
     daft.username: ''
     daft.password: ''
     secret.key: 'THIS IS AN INSECURE SECRET'
-    db.url: 'sqlite:///basic_app.sqlite'
+    db.url: 'postgres://daftpunk:supersecret@daftpunk-postgres:30306/daftpunk'
+    db.password: 'supersecret'
