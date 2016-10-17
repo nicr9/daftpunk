@@ -6,9 +6,9 @@ from dp2 import H_AJAX, H_COMMON, H_FORM
 
 
 class DaftClient(object):
-    def __init__(self, user, passwd):
+    def __init__(self):
         self.session = requests.Session()
-        self.login(user, passwd)
+        self.logged_in = False
         self.refresh()
 
     def login(self, user, passwd):
@@ -24,23 +24,26 @@ class DaftClient(object):
                 },
                 )
 
+        # TODO: Check that login attempt succeeded
+        self.logged_in = True
+
     def refresh(self):
-        self.saved = self.get_saved_properties()
         self.counties = self.get_counties()
 
     def get_saved_properties(self):
-        resp = self.session.get(
-                "https://www.daft.ie/my-daft/saved-ads/",
-                headers=H_COMMON,
-                )
+        if self.logged_in
+            resp = self.session.get(
+                    "https://www.daft.ie/my-daft/saved-ads/",
+                    headers=H_COMMON,
+                    )
 
-        soup = BeautifulSoup(resp.text, "html")
-        grid = soup.find(**{'class': 'saved-ads-grid'})
-        return [
-                prop
-                for prop in grid.find_all('li')
-                if 'empty' in prop['class']
-                ] if grid else []
+            soup = BeautifulSoup(resp.text, "html")
+            grid = soup.find(**{'class': 'saved-ads-grid'})
+            return [
+                    prop
+                    for prop in grid.find_all('li')
+                    if 'empty' in prop['class']
+                    ] if grid else []
 
     def get_counties(self):
         resp = self.session.get("https://daft.ie/searchsale.daft", headers=H_COMMON)

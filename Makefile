@@ -22,8 +22,10 @@ push-py:
 
 build:
 	docker build -t nicr9/dp2_web:latest -f web/Dockerfile web
+	docker push nicr9/dp2_web:latest
 
-push: build
+rebuild:
+	docker build -t nicr9/dp2_web:latest --no-cache -f web/Dockerfile web
 	docker push nicr9/dp2_web:latest
 
 deploy:
@@ -38,3 +40,11 @@ teardown:
 
 open:
 	google-chrome --incognito `minikube service ${service} --url`
+
+shell:
+	kubectl run -it --image=alpine --rm sh --command -- /bin/sh
+
+python:
+	kubectl run \
+		-it --image=nicr9/dp2_web:latest --rm \
+		sh -- python /usr/src/app/app.py

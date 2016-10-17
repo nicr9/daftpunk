@@ -155,7 +155,7 @@ def user_profile(username):
 def get_regions():
     key = request.form.keys()[0]
     if key:
-        client = DaftClient(DAFT_USER, DAFT_PASSWD)
+        client = DaftClient()
         data = client.get_regions(key)
         return json.dumps(data), 200
     return '[]', 400
@@ -163,7 +163,7 @@ def get_regions():
 @app.route('/new_region', methods=['GET', 'POST'])
 @login_required
 def new_region():
-    client = DaftClient(DAFT_USER, DAFT_PASSWD)
+    client = DaftClient()
 
     form = RegionForm()
     if form.is_submitted():

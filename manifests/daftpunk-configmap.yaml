@@ -4,7 +4,7 @@ metadata:
   name: daftpunk-config
   namespace: default
 data:
-    daft.username: 
-    daft.password: 
+    daft.username: ''
+    daft.password: ''
     secret.key: 'THIS IS AN INSECURE SECRET'
     db.url: 'sqlite:///basic_app.sqlite'
