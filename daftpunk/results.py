@@ -107,6 +107,7 @@ class DaftSummaryResults(object):
     def get_me_stuff(self, url):
         
         response = requests.get(url)
+        print response
         stuff    = None
 
         if self.mode == "soup":

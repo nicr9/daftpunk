@@ -107,7 +107,7 @@ def gather_daft_summary_results_pages():
     offset  = 0
 
     for offset, url, page in results.iterator():
-
+        
         outfile  = mock_file_mangler(path, url)
         
         print ">> URL is - '{}'".format(url)
