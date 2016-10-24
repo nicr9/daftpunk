@@ -6,12 +6,13 @@ import requests
 
 from mock_requests import MockRequests
 
-requests = MockRequests
-
 from daftpunk.results import PropertySummaryParser
 
 from daftpunk.results import DaftSummaryPageIterator
 from daftpunk.results import DaftSummaryResults
+
+
+requests = MockRequests
 
 
 def get_offset_endpoint(url, offset):
@@ -43,9 +44,10 @@ def _test_page_iteration(results):
 	for offest, url, page in results.iterator():
 		assert results.has_results(page)
 
+
 def test_page_iteration_for_soup():
 
-	results = DaftSummaryResultsPages(
+	results = DaftSummaryResults(
 		county="dublin",
 		area="walkinstown",
 		mode="soup"
@@ -54,9 +56,10 @@ def test_page_iteration_for_soup():
 	
 	_test_page_iteration(results)
 
+
 def test_page_iteration_for_response():
 
-	results = DaftSummaryResultsPages(
+	results = DaftSummaryResults(
 		county="dublin",
 		area="walkinstown",
 		mode="response"
@@ -66,9 +69,10 @@ def test_page_iteration_for_response():
 	_test_page_iteration(results)
 
 
+
 def test_page_parsing():
 
-	results = DaftSummaryResultsPages(
+	results = DaftSummaryResults(
 		county="dublin",
 		area="walkinstown",
 		mode="soup"
@@ -79,8 +83,4 @@ def test_page_parsing():
 	
 	assert results.has_results(page)
 
-	for 
-
-
-
-
+	results.

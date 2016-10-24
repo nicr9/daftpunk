@@ -12,28 +12,6 @@ def get_gps_coordinates(number, street):
     pass
 
 
-class DaftSummaryResultsIterator(object):
-
-    def __init__(self, parent):
-
-        self.parent = parent
-        self.offset = 0
-
-    def __iter__(self):
-        return self
-
-    def next(self):
-        
-        url  = self.parent.get_page_url(self.offset)
-        page = self.parent.get_me_stuff(url)
-
-        if self.parent.has_results(page):
-            self.offset += 10
-            return self.offset, url, page
-        else:
-            raise StopIteration()
-
-
 class DaftSummaryPageIterator(object):
 
     def __init__(self, page):
@@ -54,6 +32,35 @@ class DaftSummaryPageIterator(object):
             raise StopIteration()
 
 
+class DaftSummaryResultsIterator(object):
+
+    def __init__(self, parent):
+
+        self.parent = parent
+        self.offset = 0
+
+    def __iter__(self):
+        return self
+
+    def next(self):
+        
+        off  = self.offset
+        url  = self.parent.get_page_url(self.offset)
+        page = self.parent.get_me_stuff(url)
+
+        if self.parent.is_paginated(page):
+            if self.parent.has_results(page):
+                self.offset += 10
+                return off, url, page
+            else:   
+                raise StopIteration()   
+        else:
+            if off < 10:
+                self.offset += 10
+                return off, url, page
+            else:
+                raise StopIteration()
+
 class DaftSummaryResults(object):
 
     def __init__(self, **kwargs):
@@ -65,13 +72,16 @@ class DaftSummaryResults(object):
 
         # Results page settings, use defaults
 
-        county = kwargs.get("county", "ireland")
-        offer  = kwargs.get("offer",  "houses-for-sale")
-        area   = kwargs.get("area",    None)
+        county = kwargs.get("county", "")
+        offer  = kwargs.get("offer",  "")
+        area   = kwargs.get("area",   "")
+
+        if not (county and offer):
+            raise ValueError("You must supply a county and an offer type ...")
 
         path = os.path.join(county, offer)
 
-        if area is not None:
+        if area:
             path = os.path.join(path, area)
 
         self.target = urlparse.urljoin("http://www.daft.ie", path)
@@ -90,13 +100,28 @@ class DaftSummaryResults(object):
     def iterator(self):
         return DaftSummaryResultsIterator(self)
 
-    def has_results(self, item):
-        soup = None
+    def ensure_is_soup(self, item):
         if not isinstance(item, bs4.BeautifulSoup):
-            soup = bs4.BeautifulSoup(item.content, "html.parser")
-        else:
-            soup = item
-        return soup.find("div", attrs={"id": "gc_content"}) is None
+            return bs4.BeautifulSoup(item.content, "html.parser")
+        return item
+    
+    def is_paginated(self, item):
+        soup = self.ensure_is_soup(item)
+        ul = soup.find("ul", attrs={"class": "paging clear"})
+        return ul is not None and ul.find("li") is not None
+
+    def has_results(self, item):
+        
+        soup = self.ensure_is_soup(item)
+        
+        div = soup.find("div", attrs={"id": "gc_content"})
+
+        if div is not None:
+            no_results = div.find(
+                "h1").text.encode("ascii", "ignore").strip().lower()
+            return no_results == "no results"
+        
+        return True
         
     def get_page_url(self, offset):
         params = {"offset" : offset}
@@ -117,11 +142,20 @@ class DaftSummaryResults(object):
 
         return stuff
 
+#
+# These are the different types of properties we can scrape summary info
+# from on the Daft site. By manipulating the paths and endpoints we 
+# can scrape relevant info.
+#
+# http://www.daft.ie/ireland
+#
 
-class PropertySummaryParser(object):
+class PropertyForSaleSummaryParser(object):
     
     """
-        Describes the information we want about the property
+    ProprtyForSaleSummaryParser encapsulates all of the data we want to 
+    extract from a Daft summary page for the property-for-sale path 
+    in the Daft REST API.
     """
 
     def get_header(self, soup):
@@ -245,6 +279,12 @@ class PropertySummaryParser(object):
             self.new_development, self.ber, self.bedrooms, self.bathrooms,
             self.estate_agent, self.link
         )
+
+
+class NewHomesForSaleSummaryParser(object):
+
+    def __init__(self):
+        pass
 
 def gather_summary_results(self):
 

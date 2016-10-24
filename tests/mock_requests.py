@@ -63,6 +63,8 @@ def MockRequests(MagicMock):
 
     def __init__(self):
         
+        super(MockRequests, self).__init__()
+
         self.path  = os.path.join(os.getcwd(), "tests/data")
         self.dates = directories(self.path, absolute=True)
  
@@ -73,6 +75,9 @@ def MockRequests(MagicMock):
 
     def get_date(self):
         return self.dates[self.date_idx]
+    
+    def set_date(self, date):
+        self.current_date = date
 
     def next_date(self):
         self.current_date +=1
@@ -93,7 +98,7 @@ def MockRequests(MagicMock):
                 os.path.join(data, no_results))
 
 
-def gather_daft_summary_results_pages():
+def get_results_pages(county, offer, area):
 
     date = get_datestamp()
     path = os.path.join(
@@ -102,26 +107,38 @@ def gather_daft_summary_results_pages():
     if not os.path.isdir(path): os.makedirs(path)
 
     results = DaftSummaryResults(
-        county="dublin", area="walkinstown", mode="response")
+        county=county, 
+        offer=offer, 
+        area=area, 
+        mode="response"   # get the raw response so that we can replace 
+                          # when mocking the requestst
+    )
 
     offset  = 0
 
+    print "\n-----"
+    print "County : {}".format(county)
+    print "Offer  : {}".format(offer)
+    print "Area   : {}".format(area)
+
+    print "Gathering results for : {}".format(results.target)
+
     for offset, url, page in results.iterator():
         
-        outfile  = mock_file_mangler(path, url)
+        out  = mock_file_mangler(path, url)
         
         print ">> URL is - '{}'".format(url)
 
-        if not os.path.isfile(outfile):
+        if not os.path.isfile(out):
         
             print ">> Grab it ..."      
-            print ">> Save    - '{}'".format(outfile)
+            print ">> Save    - '{}'".format(out)
 
         else: 
 
             print "Got it already ..."
 
-        pickler(page, outfile)
+        pickler(page, out)
 
     offset += 10
 
@@ -131,8 +148,29 @@ def gather_daft_summary_results_pages():
     outfile = os.path.join(path, "no_results")
 
     pickler(page, outfile)
+    print "\n-----"
+
+
+def gather_test_data():
+
+    county   = "dublin"
+    for_sale = "property-for-sale"
+    new_home = "new-homes-for-sale" 
+
+    areas = [
+        "walkinstown", 
+        "rathmines", 
+        "rathfarnham", 
+        "terenure", 
+        "churchtown",
+        "cherrywood",
+    ]
+
+    for area in areas:
+        get_results_pages(county, for_sale, area)
+        get_results_pages(county, new_home, area)
 
 
 if __name__ == "__main__":
 
-    gather_daft_summary_results_pages()
+    gather_test_data()
