@@ -43,7 +43,7 @@ class BaseIterator(object):
         return self
 
     def next(self):
-        pass
+        raise StopIteration()
 
 
 class HttpResponseIterator(BaseIterator):
@@ -152,7 +152,7 @@ class SummaryResultPages(object):
         return requests.get(url)
 
     def get_soup(self, url):
-        content = requests.get(url).content
+        content = self.get_response(url).content
         return bs4.BeautifulSoup(content, "html.parser")
 
 
@@ -305,5 +305,5 @@ class NewHomesForSaleSummaryParser(object):
 
 def get_summary_data(results, parser):
     return [parser(result) 
-            for page in PageIterator(results)
+            for page   in PageIterator(results)
             for result in ResultsIterator(page)]
