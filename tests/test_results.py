@@ -55,7 +55,6 @@ class TestResults(object):
 			offer="property-for-sale",
 			area="walkinstown"
 		)
-		assert results.mode == "soup"
 		self.__test_page_iteration(results)
 
 	def test_property_for_sale_page_parsing(self):

@@ -135,3 +135,4 @@ Twitter: @nicr9_
 
 * [Peter Keogh](https://github.com/keoghpe)
 * [Kingsley Kelly](https://github.com/KingsleyKelly)
+* [Brian Duffy](https://github.com/bmduffy)

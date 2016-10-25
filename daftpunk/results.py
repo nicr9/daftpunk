@@ -48,7 +48,7 @@ class BaseIterator(object):
 
 class HttpResponseIterator(BaseIterator):
 
-    def __init__(self, results)
+    def __init__(self, results):
         super(HttpResponseIterator, self).__init__(results)
 
     def next(self):
@@ -72,7 +72,7 @@ class HttpResponseIterator(BaseIterator):
                 raise StopIteration()
 
 
-class PageIterator(object):
+class PageIterator(BaseIterator):
 
     def __init__(self, results):
         super(PageIterator, self).__init__(results)
@@ -100,7 +100,6 @@ class PageIterator(object):
 class SummaryResultPages(object):
 
     def __init__(self, **kwargs):
-
         self.set_target(**kwargs)
 
     def set_target(self, **kwargs):
@@ -129,8 +128,6 @@ class SummaryResultPages(object):
     def is_paginated(self, item):
         soup = self.ensure_is_soup(item)
         ul = soup.find("ul", attrs={"class": "paging clear"})
-        if ul is not None:
-            print ul.prettify()
         return ul is not None and ul.find("li") is not None
 
     def has_results(self, item):
@@ -155,7 +152,8 @@ class SummaryResultPages(object):
         return requests.get(url)
 
     def get_soup(self, url):
-        return bs4.BeautifulSoup(requests.get(url), "html.parser")
+        content = requests.get(url).content
+        return bs4.BeautifulSoup(content, "html.parser")
 
 
 #
