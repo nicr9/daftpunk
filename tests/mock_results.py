@@ -7,8 +7,8 @@ import datetime
 from lxml     import html
 from urlparse import urlparse
 
-from daftpunk.results import DaftSummaryResults
-
+from daftpunk.results import SummaryResultPages
+from daftpunk.results import HttpResponseIterator
 
 def get_datestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d')
@@ -130,7 +130,7 @@ def get_results_pages(county, offer, area):
     
     if not os.path.isdir(path): os.makedirs(path)
 
-    results = DaftSummaryResults(
+    results = SummaryResults(
         county=county, 
         offer=offer, 
         area=area, 
@@ -147,7 +147,7 @@ def get_results_pages(county, offer, area):
 
     print "Gathering results for : {}".format(results.target)
 
-    for offset, url, page in results.iterator(offset=True, url=True):
+    for offset, url, page in HttpResponseIterator(results):
         
         out  = mock_file_mangler(path, url)
         
@@ -167,7 +167,7 @@ def get_results_pages(county, offer, area):
     offset += 10
 
     url  = results.get_page_url(offset)
-    page = results.get_me_stuff(url)
+    page = results.get_soup(url)
 
     outfile = os.path.join(path, "no_results")
 

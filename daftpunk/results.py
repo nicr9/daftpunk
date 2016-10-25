@@ -32,60 +32,76 @@ class ResultsIterator(object):
             raise StopIteration()
 
 
-class PageIterator(object):
+class BaseIterator(object):
 
-    def __init__(self, parent, url=False, offset=False):
+    def __init__(self, results):
 
-        self.parent = parent
+        self.results = results
         self.offset = 0
-
-        self.get_url    = url
-        self.get_offest = offset
 
     def __iter__(self):
         return self
 
-    def to_return(self, offset, url, page):
-        
-        data = []
+    def next(self):
+        pass
 
-        if self.get_offest:
-            data.append(offset)
-        if self.get_url:
-            data.append(url)
 
-        if data:
-            data.append(page)
-            return tuple(data)
-        else:
-            return page
+class HttpResponseIterator(BaseIterator):
+
+    def __init__(self, results)
+        super(HttpResponseIterator, self).__init__(results)
 
     def next(self):
-        
-        offset = self.offset
-        url    = self.parent.get_page_url(self.offset)
-        page   = self.parent.get_me_stuff(url)
 
-        if self.parent.is_paginated(page):
-            if self.parent.has_results(page):
+        offset = self.offset
+        url    = self.results.get_page_url(offset)
+        page   = self.results.get_response(url)
+
+        if self.results.is_paginated(page):
+            
+            if self.results.has_results(page):
                 self.offset += 10
-                return self.to_return(offset, url, page)
+                return offset, url, page
             else:   
                 raise StopIteration()   
         else:
             if offset < 10:
                 self.offset += 10
-                return self.to_return(offset, url, page)
+                return offset, url, page
             else:
                 raise StopIteration()
 
 
-class DaftSummaryResults(object):
+class PageIterator(object):
+
+    def __init__(self, results):
+        super(PageIterator, self).__init__(results)
+
+    def next(self):
+        
+        offset = self.offset
+        url    = self.results.get_page_url(self.offset)
+        page   = self.results.get_soup(url)
+
+        if self.results.is_paginated(page):
+            if self.results.has_results(page):
+                self.offset += 10
+                return page
+            else:   
+                raise StopIteration()   
+        else:
+            if offset < 10:
+                self.offset += 10
+                return page
+            else:
+                raise StopIteration()
+
+
+class SummaryResultPages(object):
 
     def __init__(self, **kwargs):
 
         self.set_target(**kwargs)
-        self.set_mode(**kwargs)
 
     def set_target(self, **kwargs):
 
@@ -104,20 +120,6 @@ class DaftSummaryResults(object):
             path = os.path.join(path, area)
 
         self.target = urlparse.urljoin("http://www.daft.ie", path)
-
-    def set_mode(self, **kwargs):
-
-        mode  = kwargs.get("mode", "soup")
-        modes = "soup", "response"
-
-        if mode not in modes:
-            error = "'{}' is not a valid mode, pick one of these '{}'"
-            raise ValueError(error.format(mode, modes))
-
-        self.mode = mode
-
-    def iterator(self, offest=False, url=False):
-        return PageIterator(self, offest, url)
 
     def ensure_is_soup(self, item):
         if not isinstance(item, bs4.BeautifulSoup):
@@ -149,17 +151,12 @@ class DaftSummaryResults(object):
         endpoint = "{}?{}".format(self.target, qstr)
         return endpoint
 
-    def get_me_stuff(self, url):
+    def get_response(self, url):
+        return requests.get(url)
 
-        response = requests.get(url)
-        stuff    = None
+    def get_soup(self, url):
+        return bs4.BeautifulSoup(requests.get(url), "html.parser")
 
-        if self.mode == "soup":
-            stuff = bs4.BeautifulSoup(response.content, "html.parser")
-        elif self.mode == "response":
-            stuff = response
-
-        return stuff
 
 #
 # These are the different types of properties we can scrape summary info
@@ -304,11 +301,11 @@ class PropertyForSaleSummaryParser(object):
 
 class NewHomesForSaleSummaryParser(object):
 
-    def __init__(self):
+    def __init__(self, soup):
         pass
 
 
 def get_summary_data(results, parser):
     return [parser(result) 
-            for result in ResultsIterator(page) 
-            for page in results.iterator()]
+            for page in PageIterator(results)
+            for result in ResultsIterator(page)]

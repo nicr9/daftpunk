@@ -6,7 +6,8 @@ import requests
 
 from mock_results import MockResults
 
-from daftpunk.results import DaftSummaryResults
+from daftpunk.results import SummaryResultPages
+from daftpunk.results import PageIterator
 from daftpunk.results import PropertyForSaleSummaryParser
 from daftpunk.results import NewHomesForSaleSummaryParser
 
@@ -33,23 +34,23 @@ class TestResults(object):
 		url = results.get_page_url(10)
 		assert url == endpoint
 
-		stuff = results.get_me_stuff(url)
+		stuff = results.get_soup(url)
 		assert results.has_results(stuff)
 
 		endpoint = self.__get_offset_endpoint(sales, 10000)
 		url = results.get_page_url(10000)
 		assert url == endpoint
 
-		stuff = results.get_me_stuff(url)
+		stuff = results.get_soup(url)
 		has_results = results.has_results(stuff)
 		assert not has_results
 
-		for page in results.iterator():
+		for page in PageIterator(results):
 			assert results.has_results(page)
 	
 	def test_page_iteration_for_soup(self):
 
-		results = DaftSummaryResults(
+		results = SummaryResultPages(
 			county="dublin",
 			offer="property-for-sale",
 			area="walkinstown"
@@ -59,14 +60,14 @@ class TestResults(object):
 
 	def test_property_for_sale_page_parsing(self):
 
-		results = DaftSummaryResults(
+		results = SummaryResultPages(
 			county="dublin",
 			offer="property-for-sale",
 			area="walkinstown"
 		)
 
 		url  = results.get_page_url(0)
-		page = results.get_me_stuff(url)
+		page = results.get_soup(url)
 		
 		has_results  = results.has_results(page)
 		is_paginated = results.is_paginated(page)
@@ -80,14 +81,14 @@ class TestResults(object):
 
 	def test_new_homes_for_sale_page_parsing(self):
 
-		results = DaftSummaryResults(
+		results = SummaryResultPages(
 			county="dublin", 
 			offer="new-homes-for-sale",
 			area="walkinstown"
 		)
 
 		url = results.get_page_url(0)
-		page = results.get_me_stuff(url)
+		page = results.get_soup(url)
 
 		is_paginated = results.is_paginated(page)
 		has_results  = results.has_results(page)
