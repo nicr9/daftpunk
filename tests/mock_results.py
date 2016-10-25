@@ -147,7 +147,7 @@ def get_results_pages(county, offer, area):
 
     print "Gathering results for : {}".format(results.target)
 
-    for offset, url, page in results.iterator():
+    for offset, url, page in results.iterator(offset=True, url=True):
         
         out  = mock_file_mangler(path, url)
         

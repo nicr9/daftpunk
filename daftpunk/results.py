@@ -12,7 +12,7 @@ def get_gps_coordinates(number, street):
     pass
 
 
-class DaftSummaryPageIterator(object):
+class ResultsIterator(object):
 
     def __init__(self, page):
         self.items = page.find_all("div", attrs={"class": "box"})
@@ -32,34 +32,53 @@ class DaftSummaryPageIterator(object):
             raise StopIteration()
 
 
-class DaftSummaryResultsIterator(object):
+class PageIterator(object):
 
-    def __init__(self, parent):
+    def __init__(self, parent, url=False, offset=False):
 
         self.parent = parent
         self.offset = 0
 
+        self.get_url    = url
+        self.get_offest = offset
+
     def __iter__(self):
         return self
 
+    def to_return(self, offset, url, page):
+        
+        data = []
+
+        if self.get_offest:
+            data.append(offset)
+        if self.get_url:
+            data.append(url)
+
+        if data:
+            data.append(page)
+            return tuple(data)
+        else:
+            return page
+
     def next(self):
         
-        off  = self.offset
-        url  = self.parent.get_page_url(self.offset)
-        page = self.parent.get_me_stuff(url)
+        offset = self.offset
+        url    = self.parent.get_page_url(self.offset)
+        page   = self.parent.get_me_stuff(url)
 
         if self.parent.is_paginated(page):
             if self.parent.has_results(page):
                 self.offset += 10
-                return off, url, page
+                return self.to_return(offset, url, page)
             else:   
                 raise StopIteration()   
         else:
-            if off < 10:
+            if offset < 10:
                 self.offset += 10
-                return off, url, page
+                return self.to_return(offset, url, page)
             else:
                 raise StopIteration()
+
 
 class DaftSummaryResults(object):
 
@@ -97,8 +116,8 @@ class DaftSummaryResults(object):
 
         self.mode = mode
 
-    def iterator(self):
-        return DaftSummaryResultsIterator(self)
+    def iterator(self, offest=False, url=False):
+        return PageIterator(self, offest, url)
 
     def ensure_is_soup(self, item):
         if not isinstance(item, bs4.BeautifulSoup):
@@ -108,18 +127,19 @@ class DaftSummaryResults(object):
     def is_paginated(self, item):
         soup = self.ensure_is_soup(item)
         ul = soup.find("ul", attrs={"class": "paging clear"})
+        if ul is not None:
+            print ul.prettify()
         return ul is not None and ul.find("li") is not None
 
     def has_results(self, item):
         
         soup = self.ensure_is_soup(item)
-        
-        div = soup.find("div", attrs={"id": "gc_content"})
+        div  = soup.find("div", attrs={"id": "gc_content"})
 
         if div is not None:
             no_results = div.find(
                 "h1").text.encode("ascii", "ignore").strip().lower()
-            return no_results == "no results"
+            return not (no_results == "no results")
         
         return True
         
@@ -130,9 +150,8 @@ class DaftSummaryResults(object):
         return endpoint
 
     def get_me_stuff(self, url):
-        
+
         response = requests.get(url)
-        print response
         stuff    = None
 
         if self.mode == "soup":
@@ -160,8 +179,10 @@ class PropertyForSaleSummaryParser(object):
 
     def get_header(self, soup):
     
-        relative = soup.find("h2").find("a").attrs["href"].encode("ascii", "ignore")
-        blurb = soup.find("h2").find("a").text.encode("ascii", "ignore").strip()
+        relative = soup.find(
+            "h2").find("a").attrs["href"].encode("ascii", "ignore")
+        blurb = soup.find(
+            "h2").find("a").text.encode("ascii", "ignore").strip()
         
         print blurb 
 
@@ -286,18 +307,8 @@ class NewHomesForSaleSummaryParser(object):
     def __init__(self):
         pass
 
-def gather_summary_results(self):
 
-    results = []
-
-    for page in DaftSummaryResults():
-
-        # get all property summaries on the page
-        items = page.find_all("div", attrs={"class": "box"})
-
-        for item in items:
-            if DaftSummaryResultPages.is_property(item):
-                results.append(PropertySummary(item))
-
-
-    return results
+def get_summary_data(results, parser):
+    return [parser(result) 
+            for result in ResultsIterator(page) 
+            for page in results.iterator()]
