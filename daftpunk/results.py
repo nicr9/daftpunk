@@ -304,6 +304,7 @@ class NewHomesForSaleSummaryParser(object):
 
 
 def get_summary_data(results, parser):
+    
     return [parser(result) 
             for page   in PageIterator(results)
             for result in ResultsIterator(page)]

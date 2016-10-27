@@ -10,6 +10,7 @@ from urlparse import urlparse
 from daftpunk.results import SummaryResultPages
 from daftpunk.results import HttpResponseIterator
 
+
 def get_datestamp():
     return datetime.datetime.now().strftime('%Y-%m-%d')
 

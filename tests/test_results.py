@@ -77,6 +77,7 @@ class TestResults(object):
 		data = get_summary_data(results, PropertyForSaleSummaryParser)
 
 		assert data
+		assert len(data) == 20
 
 	def test_new_homes_for_sale_page_parsing(self):
 
@@ -97,3 +98,4 @@ class TestResults(object):
 		data = get_summary_data(results, NewHomesForSaleSummaryParser)
 
 		assert data
+		assert len(data) == 1
