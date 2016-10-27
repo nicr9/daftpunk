@@ -57,12 +57,12 @@ class TestResults(object):
 		)
 		self.__test_page_iteration(results)
 
-	def test_property_for_sale_page_parsing(self):
+	def __property_for_sale(self, county, area, expected_number):
 
 		results = SummaryResultPages(
-			county="dublin",
+			county=county,
 			offer="property-for-sale",
-			area="walkinstown"
+			area=area
 		)
 
 		url  = results.get_page_url(0)
@@ -74,10 +74,21 @@ class TestResults(object):
 		assert has_results
 		assert is_paginated
 
-		data = get_summary_data(results, PropertyForSaleSummaryParser)
+		data = get_summary_data(
+			results, PropertyForSaleSummaryParser)
 
 		assert data
-		assert len(data) == 20
+		assert len(data) == expected_number
+
+	def test_property_for_sale_page_parsing(self):
+
+		# Check positive cases
+
+		self.__property_for_sale("dublin", "rathmines",   20)
+		self.__property_for_sale("dublin", "walkinstown", 19)
+
+		# there should be none for cabra because we didn't harvest any
+		self.__property_for_sale("dublin", "cabra", 0)
 
 	def test_new_homes_for_sale_page_parsing(self):
 
@@ -95,7 +106,8 @@ class TestResults(object):
 		assert not is_paginated
 		assert has_results
 
-		data = get_summary_data(results, NewHomesForSaleSummaryParser)
+		data = get_summary_data(
+			pytestresults, NewHomesForSaleSummaryParser)
 
 		assert data
 		assert len(data) == 1

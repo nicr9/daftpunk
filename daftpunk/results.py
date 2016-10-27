@@ -53,21 +53,21 @@ class HttpResponseIterator(BaseIterator):
 
     def next(self):
 
-        offset = self.offset
-        url    = self.results.get_page_url(offset)
-        page   = self.results.get_response(url)
+        offset   = self.offset
+        url      = self.results.get_page_url(offset)
+        response = self.results.get_response(url)
 
-        if self.results.is_paginated(page):
+        if self.results.is_paginated(response):
             
-            if self.results.has_results(page):
+            if self.results.has_results(response):
                 self.offset += 10
-                return offset, url, page
+                return offset, url, response
             else:   
                 raise StopIteration()   
         else:
             if offset < 10:
                 self.offset += 10
-                return offset, url, page
+                return offset, url, response
             else:
                 raise StopIteration()
 
@@ -149,11 +149,13 @@ class SummaryResultPages(object):
         return endpoint
 
     def get_response(self, url):
-        return requests.get(url)
+        response = requests.get(url)
+        return response
 
     def get_soup(self, url):
         content = self.get_response(url).content
-        return bs4.BeautifulSoup(content, "html.parser")
+        soup    = bs4.BeautifulSoup(content, "html.parser")
+        return soup
 
 
 #
@@ -178,8 +180,6 @@ class PropertyForSaleSummaryParser(object):
             "h2").find("a").attrs["href"].encode("ascii", "ignore")
         blurb = soup.find(
             "h2").find("a").text.encode("ascii", "ignore").strip()
-        
-        print blurb 
 
         addr, ptype = blurb.split(" - ")
         
@@ -194,9 +194,6 @@ class PropertyForSaleSummaryParser(object):
             self.address = addr
             self.new_development = "No"
 
-        print "\n---"
-        print self.address
-
         self.link    = urlparse.urljoin("http://www.daft.ie", relative)
         self.daft_id = relative.strip("/").split("/")[-1].split("-")[-1]
 
@@ -206,8 +203,6 @@ class PropertyForSaleSummaryParser(object):
         string_price = soup.find(
                 "strong", attrs={"class": "price"}
             ).text.encode("ascii", "ignore").replace(",", "")
-
-        print string_price
 
         try:
             self.price = float(string_price)
@@ -221,9 +216,6 @@ class PropertyForSaleSummaryParser(object):
             item.text.encode("ascii", "ignore").strip().strip("|") 
             for item in soup.find("ul", attrs={"class": "info"}).find_all("li")
         ]
-
-        print info
-        print "---\n"
 
         self.property_type = info[0]
 
@@ -274,6 +266,8 @@ class PropertyForSaleSummaryParser(object):
         self.get_ber(soup)
         self.get_agent(soup)
 
+        print self.to_string()
+
         ## TODO use GoogleMaps API
 
     def to_string(self):
@@ -291,8 +285,10 @@ class PropertyForSaleSummaryParser(object):
             "'Web Link' - '{}'\n"
             "-----\n"
         ).format(
-            self.daft_id, self.address, self.price, self.property_type,
-            self.new_development, self.ber, self.bedrooms, self.bathrooms,
+            self.daft_id, self.address, 
+            self.price, self.property_type,
+            self.new_development, self.ber, 
+            self.bedrooms, self.bathrooms,
             self.estate_agent, self.link
         )
 
@@ -304,7 +300,7 @@ class NewHomesForSaleSummaryParser(object):
 
 
 def get_summary_data(results, parser):
-    
+
     return [parser(result) 
             for page   in PageIterator(results)
             for result in ResultsIterator(page)]
