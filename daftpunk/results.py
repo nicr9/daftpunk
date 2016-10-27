@@ -159,9 +159,9 @@ class SummaryResultPages(object):
 
 
 #
-# These are the different types of properties we can scrape summary info
-# from on the Daft site. By manipulating the paths and endpoints we 
-# can scrape relevant info.
+# These are the different types of properties we can scrape summary 
+# info from on the Daft site. By manipulating the paths and
+# endpoints we can scrape relevant info.
 #
 # http://www.daft.ie/ireland
 #
@@ -169,65 +169,82 @@ class SummaryResultPages(object):
 class PropertyForSaleSummaryParser(object):
     
     """
-    ProprtyForSaleSummaryParser encapsulates all of the data we want to 
-    extract from a Daft summary page for the property-for-sale path 
-    in the Daft REST API.
+    PropertyForSaleSummaryParser encapsulates all of the data we 
+    want to extract from a Daft summary page for the 
+    property-for-sale path in the Daft REST API.
     """
 
-    def get_header(self, soup):
+    @staticmethod
+    def parse_relative_path(soup):
+        return soup.find("h2").find(
+            "a").attrs["href"].encode("ascii", "ignore")
     
-        relative = soup.find(
-            "h2").find("a").attrs["href"].encode("ascii", "ignore")
-        blurb = soup.find(
-            "h2").find("a").text.encode("ascii", "ignore").strip()
+    @staticmethod
+    def parse_full_ad_link(soup):
+        relative = PropertyForSaleSummaryParser.parse_relative_path(soup)
+        return urlparse.urljoin("http://www.daft.ie", relative)
 
-        addr, ptype = blurb.split(" - ")
-        
-        addr = addr.strip()
-        ptype = ptype.strip()
+    @staticmethod
+    def parse_daft_id(soup):
+        path = PropertyForSaleSummaryParser.parse_relative_path(soup)
+        daft_id = path.strip("/").split("/")[-1].split("-")[-1]
+        return daft_id
 
-        if ptype == "New Development":
-            parts = [x.strip() for x in addr.split(",")[1:]]
-            self.address = ", ".join(parts)
-            self.new_development = "Yes"
-        else:
-            self.address = addr
-            self.new_development = "No"
+    @staticmethod
+    def parse_blurb(soup):
+        return soup.find("h2").find(
+            "a").text.encode("ascii", "ignore").strip()
 
-        self.link    = urlparse.urljoin("http://www.daft.ie", relative)
-        self.daft_id = relative.strip("/").split("/")[-1].split("-")[-1]
+    @staticmethod
+    def parse_address(soup):
+        blurb = PropertyForSaleSummaryParser.parse_blurb(soup)
+        return blurb.split("-")[0].strip()
 
+    @staticmethod
+    def parse_property_type(soup):
+        blurb = PropertyForSaleSummaryParser.parse_blurb(soup)
+        return blurb.split("-")[1].strip().lower()
 
-    def get_price(self, soup):
+    @staticmethod
+    def is_new_development(soup):
+        pt = PropertyForSaleSummaryParser.parse_property_type(soup)
+        return pt == "new development" or pt == "new homes"
+
+    @staticmethod
+    def parse_price(soup):
         
         string_price = soup.find(
                 "strong", attrs={"class": "price"}
             ).text.encode("ascii", "ignore").replace(",", "")
 
         try:
-            self.price = float(string_price)
+            return float(string_price)
         
         except ValueError:
-            self.price = string_price
-
-    def get_info(self, soup):   
+            return string_price
+    
+    @staticmethod
+    def parse_property_details(soup):   
 
         info = [ 
             item.text.encode("ascii", "ignore").strip().strip("|") 
             for item in soup.find("ul", attrs={"class": "info"}).find_all("li")
         ]
+        
+        property_type = info[0]
 
-        self.property_type = info[0]
+        if property_type.startswith("Apartment"):
+            property_type = "Apartment"
+
+        bedrooms      = None
+        bathrooms     = None
 
         if len(info) == 3:
 
-            self.property_type = info[0]
-            self.bedrooms      = int(info[1].split(" ")[0])
-            self.bathrooms     = int(info[2].split(" ")[0])
+            bedrooms      = int(info[1].split(" ")[0])
+            bathrooms     = int(info[2].split(" ")[0])
 
         else:
-            
-            self.property_type = info[0]
             
             string = " ".join(info)
             beds   = re.compile(r"\d+ Beds")
@@ -236,37 +253,39 @@ class PropertyForSaleSummaryParser(object):
             has_beds = re.search(beds, string)
             has_baths = re.search(baths, string)
 
-            self.bedrooms  = None if has_beds  is None else has_beds.group().split(" ")[0]
-            self.bathrooms = None if has_baths is None else has_baths.group().split(" ")[0]
+            bedrooms  = None if has_beds  is None else has_beds.group().split(" ")[0]
+            bathrooms = None if has_baths is None else has_baths.group().split(" ")[0]
 
+        return bedrooms, bathrooms, property_type
 
-    def get_ber(self, soup):
-
-        self.ber = None
-
+    @staticmethod
+    def parse_ber(soup):
         rating = soup.find("span", attrs={"ber-hover"})
-        
         if rating is not None:
-            self.ber = rating.find("img").attrs["alt"].encode("ascii", "ignore").split(" ")[-1]
+            return rating.find("img").attrs["alt"].encode(
+                "ascii", "ignore").split(" ")[-1]
+        return None
 
-    def get_agent(self, soup):
-        
-        self.estate_agent = None 
-
-        tmp = soup.find("li", attrs={"class": "agent-name-link truncate"})
-
-        if tmp is not None:
-            self.estate_agent = tmp.find("a").text.encode("ascii", "ignore")
+    @staticmethod
+    def parse_agent(soup):
+        agent = soup.find("li", attrs={"class": "agent-name-link truncate"})
+        if agent is not None:
+            return agent.find("a").text.encode("ascii", "ignore")
+        return None
 
     def __init__(self, soup):
 
-        self.get_header(soup)
-        self.get_price(soup)
-        self.get_info(soup)
-        self.get_ber(soup)
-        self.get_agent(soup)
+        self.daft_link = self.parse_full_ad_link(soup)
+        self.daft_id   = self.parse_daft_id(soup)
 
-        print self.to_string()
+        self.address   = self.parse_address(soup)
+        self.price     = self.parse_price(soup)
+        self.ber       = self.parse_ber(soup)
+        
+        self.estate_agent  = self.parse_agent(soup)
+        
+        self.bedrooms, self.bathrooms, self.property_type = \
+            self.parse_property_details(soup)
 
         ## TODO use GoogleMaps API
 
@@ -277,19 +296,18 @@ class PropertyForSaleSummaryParser(object):
             "'Address'         : '{}'\n"
             "'Price'           : '{}'\n"
             "'Type'            : '{}'\n"
-            "'New Development' : '{}'\n"
             "'BER'             : '{}'\n"
             "'Bedrooms'        : '{}'\n"
             "'Bathrooms'       : '{}'\n"
             "'Agent'           : '{}'\n\n"
-            "'Web Link' - '{}'\n"
+            "'Daft Link' - '{}'\n"
             "-----\n"
         ).format(
             self.daft_id, self.address, 
             self.price, self.property_type,
-            self.new_development, self.ber, 
-            self.bedrooms, self.bathrooms,
-            self.estate_agent, self.link
+            self.ber, self.bedrooms, 
+            self.bathrooms, self.estate_agent, 
+            self.daft_link
         )
 
 
@@ -299,8 +317,15 @@ class NewHomesForSaleSummaryParser(object):
         pass
 
 
-def get_summary_data(results, parser):
+def get_properties_for_sale(results):
 
-    return [parser(result) 
+    return [PropertyForSaleSummaryParser(result) 
             for page   in PageIterator(results)
             for result in ResultsIterator(page)]
+
+
+def get_new_homes_for_sale(results):
+
+    return [NewHomesForSaleSummaryParser(result) 
+        for page   in PageIterator(results)
+        for result in ResultsIterator(page)]

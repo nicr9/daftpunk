@@ -8,19 +8,20 @@ from mock_results import MockResults
 
 from daftpunk.results import SummaryResultPages
 from daftpunk.results import PageIterator
-from daftpunk.results import PropertyForSaleSummaryParser
-from daftpunk.results import NewHomesForSaleSummaryParser
 
-from daftpunk.results import get_summary_data
+from daftpunk.results import get_properties_for_sale
+from daftpunk.results import get_new_homes_for_sale
 
 
 class TestResults(object):
 
 	def setup(self):
+		
 		MockResults.set_earliest_date()
 		requests.get = MockResults.get
 
 	def __get_offset_endpoint(self, url, offset):
+
 		params = {"offset" : offset}
 		qstr = urllib.urlencode(params)
 		return "{}?{}".format(url, qstr)
@@ -71,24 +72,31 @@ class TestResults(object):
 		has_results  = results.has_results(page)
 		is_paginated = results.is_paginated(page)
 
-		assert has_results
-		assert is_paginated
+		if has_results:
+			assert is_paginated
 
-		data = get_summary_data(
-			results, PropertyForSaleSummaryParser)
+		data = get_properties_for_sale(results)
+		actual_number = len(data)
 
-		assert data
-		assert len(data) == expected_number
+		assert actual_number == expected_number
 
 	def test_property_for_sale_page_parsing(self):
 
 		# Check positive cases
 
-		self.__property_for_sale("dublin", "rathmines",   20)
-		self.__property_for_sale("dublin", "walkinstown", 19)
+		print "Date : {}".format(MockResults.date)
+		
+		test_areas = [
+			("dublin", "rathmines",   22),
+			("dublin", "walkinstown", 21),
+			("dublin", "rathfarnham", 71),
+			("dublin", "terenure",    28),
+			("dublin", "churchtown",  15),
+			("dublin", "cherrywood",   0),
+		]
 
-		# there should be none for cabra because we didn't harvest any
-		self.__property_for_sale("dublin", "cabra", 0)
+		for county, area, expected_number in test_areas:
+			self.__property_for_sale(county, area, expected_number)
 
 	def test_new_homes_for_sale_page_parsing(self):
 
@@ -106,8 +114,7 @@ class TestResults(object):
 		assert not is_paginated
 		assert has_results
 
-		data = get_summary_data(
-			pytestresults, NewHomesForSaleSummaryParser)
+		data = get_new_homes_for_sale(results)
 
 		assert data
 		assert len(data) == 1
