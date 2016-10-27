@@ -166,13 +166,7 @@ class SummaryResultPages(object):
 # http://www.daft.ie/ireland
 #
 
-class PropertyForSaleSummaryParser(object):
-    
-    """
-    PropertyForSaleSummaryParser encapsulates all of the data we 
-    want to extract from a Daft summary page for the 
-    property-for-sale path in the Daft REST API.
-    """
+class SummaryParser(object):
 
     @staticmethod
     def parse_relative_path(soup):
@@ -206,9 +200,37 @@ class PropertyForSaleSummaryParser(object):
         return blurb.split("-")[1].strip().lower()
 
     @staticmethod
+    def parse_agent(soup):
+        agent = soup.find("li", attrs={"class": "agent-name-link truncate"})
+        if agent is not None:
+            return agent.find("a").text.encode("ascii", "ignore")
+        return None
+
+
+    def __init__(self, soup):
+
+        self.daft_link = self.parse_full_ad_link(soup)
+        self.daft_id   = self.parse_daft_id(soup)
+        self.address   = self.parse_address(soup)
+
+        self.estate_agent  = self.parse_agent(soup)
+
+    def to_string(self):
+        return ""
+
+
+class PropertyForSaleSummaryParser(SummaryParser):
+    
+    """
+    PropertyForSaleSummaryParser encapsulates all of the data we 
+    want to extract from a Daft summary page for the 
+    property-for-sale path in the Daft REST API.
+    """
+
+    @staticmethod
     def is_new_development(soup):
         pt = PropertyForSaleSummaryParser.parse_property_type(soup)
-        return pt == "new development" or pt == "new homes"
+        return pt == "new development"
 
     @staticmethod
     def parse_price(soup):
@@ -266,23 +288,12 @@ class PropertyForSaleSummaryParser(object):
                 "ascii", "ignore").split(" ")[-1]
         return None
 
-    @staticmethod
-    def parse_agent(soup):
-        agent = soup.find("li", attrs={"class": "agent-name-link truncate"})
-        if agent is not None:
-            return agent.find("a").text.encode("ascii", "ignore")
-        return None
-
     def __init__(self, soup):
 
-        self.daft_link = self.parse_full_ad_link(soup)
-        self.daft_id   = self.parse_daft_id(soup)
+        super(PropertyForSaleSummaryParser, self).__init__(soup)
 
-        self.address   = self.parse_address(soup)
         self.price     = self.parse_price(soup)
-        self.ber       = self.parse_ber(soup)
-        
-        self.estate_agent  = self.parse_agent(soup)
+        self.ber       = self.parse_ber(soup)        
         
         self.bedrooms, self.bathrooms, self.property_type = \
             self.parse_property_details(soup)
@@ -291,7 +302,7 @@ class PropertyForSaleSummaryParser(object):
 
     def to_string(self):
         return (
-            "-----\n"
+            "--- Property For Sale ---\n"
             "'Daft ID'         : '{}'\n"
             "'Address'         : '{}'\n"
             "'Price'           : '{}'\n"
@@ -311,10 +322,58 @@ class PropertyForSaleSummaryParser(object):
         )
 
 
-class NewHomesForSaleSummaryParser(object):
+class PriceRange(object):
+
+    def __init__(self, pfrom, pto):
+
+        setattr(self, "from", pfrom)
+        setattr(self, "to",   pto)
+
+    def to_string(self):
+        return "'{} - {}'".format(
+            getattr(self, "from"), getattr(self, "to"))
+
+    def __str__(self):
+        return self.to_string()
+
+
+class NewHomesForSaleSummaryParser(SummaryParser):
+
+    @staticmethod
+    def parse_price_range(soup):
+        
+        string_price = soup.find(
+                "strong", attrs={"class": "price"}
+            ).text.encode("ascii", "ignore").replace(",", "")
+
+        if string_price == "Price on Application":
+            return string_price
+        else:
+            parts = string_price.split(" ")
+            pfrom = float(parts[1])
+            pto   = float(parts[3])
+            return PriceRange(pfrom, pto)
 
     def __init__(self, soup):
-        pass
+        
+        super(NewHomesForSaleSummaryParser, self).__init__(soup)
+
+        self.price_range = self.parse_price_range(soup)
+
+    def to_string(self):
+        return (
+            "--- New Home For Sale ---\n"
+            "'Daft ID'         : '{}'\n"
+            "'Address'         : '{}'\n"
+            "'Price Range'     : '{}'\n"
+            "'Agent'           : '{}'\n\n"
+            "'Daft Link' - '{}'\n"
+            "-----\n"
+        ).format(
+            self.daft_id, self.address, 
+            self.price_range, self.estate_agent, 
+            self.daft_link
+        )
 
 
 def get_properties_for_sale(results):
