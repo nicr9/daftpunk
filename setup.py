@@ -15,5 +15,6 @@ setup(
             'beautifulsoup4',
             'redis',
             ],
+        tests_require=['pytest'],
         license='MIT',
         )

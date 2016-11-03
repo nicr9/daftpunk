@@ -31,7 +31,7 @@ class DaftClient(object):
         self.counties = self.get_counties()
 
     def get_saved_properties(self):
-        if self.logged_in
+        if self.logged_in:
             resp = self.session.get(
                     "https://www.daft.ie/my-daft/saved-ads/",
                     headers=H_COMMON,
