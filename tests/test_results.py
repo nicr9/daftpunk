@@ -4,7 +4,7 @@ import urllib
 import pytest
 import requests
 
-from mock_results import MockResults
+from mock_results import mock_get, dates
 
 from daftpunk.results import SummaryResultPages
 from daftpunk.results import PageIterator
@@ -14,104 +14,96 @@ from daftpunk.results import get_new_homes_for_sale
 
 
 class TestResults(object):
+    def setup(self):
+        requests.get = mock_get
 
-	def setup(self):
-		
-		MockResults.set_earliest_date()
-		requests.get = MockResults.get
+    def __get_offset_endpoint(self, url, offset):
+        params = {"offset" : offset}
+        qstr = urllib.urlencode(params)
+        return "{}?{}".format(url, qstr)
 
-	def __get_offset_endpoint(self, url, offset):
+    def __test_page_iteration(self, results):
 
-		params = {"offset" : offset}
-		qstr = urllib.urlencode(params)
-		return "{}?{}".format(url, qstr)
+        sales = "http://www.daft.ie/dublin/property-for-sale/walkinstown"
+        assert results.target == sales
 
-	def __test_page_iteration(self, results):
+        endpoint = self.__get_offset_endpoint(sales, 10)
+        url = results.get_page_url(10)
+        assert url == endpoint
 
-		sales = "http://www.daft.ie/dublin/property-for-sale/walkinstown" 
-		assert results.target == sales
+        soup = results.get_soup(url)
+        assert results.has_results(soup)
+        assert results.is_paginated(soup)
 
-		endpoint = self.__get_offset_endpoint(sales, 10)
-		url = results.get_page_url(10)
-		assert url == endpoint
+        endpoint = self.__get_offset_endpoint(sales, 10000)
+        url = results.get_page_url(10000)
+        assert url == endpoint
 
-		soup = results.get_soup(url)
-		assert results.has_results(soup)
-		assert results.is_paginated(soup)
+        soup = results.get_soup(url)
+        has_results = results.has_results(soup)
+        is_paginated = results.is_paginated(soup)
 
-		endpoint = self.__get_offset_endpoint(sales, 10000)
-		url = results.get_page_url(10000)
-		assert url == endpoint
+        assert not has_results
+        assert not is_paginated
 
-		soup = results.get_soup(url)
-		has_results = results.has_results(soup)
-		is_paginated = results.is_paginated(soup)
+        for page in PageIterator(results):
+                assert results.has_results(page)
 
-		assert not has_results
-		assert not is_paginated
+    def test_page_iteration_for_soup(self):
+        results = SummaryResultPages(
+                county="dublin",
+                offer="property-for-sale",
+                area="walkinstown"
+        )
+        self.__test_page_iteration(results)
 
-		for page in PageIterator(results):
-			assert results.has_results(page)
-	
-	def test_page_iteration_for_soup(self):
+    def __check_number_offered(self, county, offer, area, expected):
+        offers = {
+                "property-for-sale"  : get_properties_for_sale,
+                "new-homes-for-sale" : get_new_homes_for_sale,
+        }
 
-		results = SummaryResultPages(
-			county="dublin",
-			offer="property-for-sale",
-			area="walkinstown"
-		)
-		self.__test_page_iteration(results)
+        assert offer in offers
 
-	def __check_number_offered(self, county, offer, area, expected):
+        results = SummaryResultPages(
+                county=county, offer=offer, area=area)
 
-		offers = {
-			"property-for-sale"  : get_properties_for_sale, 
-			"new-homes-for-sale" : get_new_homes_for_sale,
-		}
+        actual = len(offers.get(offer)(results))
 
-		assert offer in offers
+        assert actual == expected, "{}/{}/{}".format(county, offer, area)
 
-		results = SummaryResultPages(
-			county=county, offer=offer, area=area)
+    def test_property_for_sale_page_parsing(self):
+        for date in dates():
+            print "Date : {}".format(date)
 
-		actual = len(offers.get(offer)(results))
+            offer = "property-for-sale"
 
-		assert actual == expected, "{}/{}/{}".format(county, offer, area)
+            test_areas = [
+                    ("dublin", "rathmines",   22),
+                    ("dublin", "walkinstown", 21),
+                    ("dublin", "rathfarnham", 71),
+                    ("dublin", "terenure",    28),
+                    ("dublin", "churchtown",  15),
+                    ("dublin", "cherrywood",   0),
+            ]
 
-	def test_property_for_sale_page_parsing(self):
+            for county, area, number in test_areas:
+                    self.__check_number_offered(county, offer, area, number)
 
-		# Check positive cases
+    def test_new_homes_for_sale_page_parsing(self):
+        for date in dates():
+            print "Date : {}".format(date)
 
-		print "Date : {}".format(MockResults.date)
-		
-		offer = "property-for-sale"
+            offer = "new-homes-for-sale"
 
-		test_areas = [
-			("dublin", "rathmines",   22),
-			("dublin", "walkinstown", 21),
-			("dublin", "rathfarnham", 71),
-			("dublin", "terenure",    28),
-			("dublin", "churchtown",  15),
-			("dublin", "cherrywood",   0),
-		]
+            test_areas = [
+                    ("dublin", "rathmines",   1),
+                    ("dublin", "walkinstown", 1),
+                    ("dublin", "rathfarnham", 3),
+                    ("dublin", "terenure",    1),
+                    ("dublin", "churchtown",  1),
+                    ("dublin", "cherrywood",  0),
+            ]
 
-		for county, area, number in test_areas:
-			self.__check_number_offered(county, offer, area, number)
-
-	def test_new_homes_for_sale_page_parsing(self):
-
-		print "Date : {}".format(MockResults.date)
-		
-		offer = "new-homes-for-sale"
-
-		test_areas = [
-			("dublin", "rathmines",   1),
-			("dublin", "walkinstown", 1),
-			("dublin", "rathfarnham", 3),
-			("dublin", "terenure",    1),
-			("dublin", "churchtown",  1),
-			("dublin", "cherrywood",  0),
-		]
-
-		for county, area, number in test_areas:
-			self.__check_number_offered(county, offer, area, number)
+            for county, area, number in test_areas:
+                    self.__check_number_offered(county, offer, area, number)

@@ -2,27 +2,13 @@
 
 import os
 import pickle
-import datetime 
+import datetime
 
 from lxml     import html
 from urlparse import urlparse
 
 from daftpunk.results import SummaryResultPages
 from daftpunk.results import HttpResponseIterator
-
-
-def get_datestamp():
-    return datetime.datetime.now().strftime('%Y-%m-%d')
-
-
-def save_html(content, path):
-    with open(path, "wb") as fp:
-        fp.write(content)
-
-
-def read_html(path):
-    with open(path, "rb") as fp:
-        return html.fromstring(fp.read())
 
 
 def pickler(obj, path):
@@ -45,19 +31,21 @@ def directories(path, absolute=False):
 
 def files(path, absolute=False):
     return [
-        os.path.join(path, f) if absolute else f 
-        for f in os.listdir(path) 
+        os.path.join(path, f) if absolute else f
+        for f in os.listdir(path)
         if os.path.isfile(os.path.join(path, f))
     ]
 
 
+def dates():
+    path = os.path.join(os.getcwd(), "tests/data")
+    for root, dirs, _ in os.walk(path):
+        for d in dirs:
+            yield os.path.join(root, d)
+
 class MockResults(object):
-
-    date = None
-
-    @staticmethod
-    def get_data_path():
-        return os.path.join(os.getcwd(), "tests/data")
+    def __init__(self, date):
+        self.date_path = os.path.join(MockResults.path, MockResults.date)
 
     @staticmethod
     def set_earliest_date():
@@ -65,12 +53,7 @@ class MockResults(object):
 
     @staticmethod
     def get_dates():
-        return directories(MockResults.get_data_path())
-
-    @staticmethod
-    def get_date_path():
-        return os.path.join(
-            MockResults.get_data_path(), MockResults.date)
+        return directories(MockResults.path)
 
     @staticmethod
     def reconstruct_uri(file):
@@ -89,53 +72,28 @@ class MockResults(object):
         filename = "{}_{}".format(endpoint, query)
         return os.path.join(path, filename)
 
-    @staticmethod
-    def register_paths(test_adapter):
-    
-        data_path = MockResults.get_date_path()
-        results   = files(data_path, absolute=True)
-        
-        no_results = results.pop(
-            results.index(os.path.join(data_path, "no_results")))
+def mock_get(uri, *args, **kwargs):
+    data_path = dates().next()
+    no_results = os.path.join(data_path, "no_results")
+    file       = MockResults.file_path(data_path, uri)
 
-        for file in results:
-            uri = MockResults.reconstruct_uri(file)
-            print "registering URI {}".format(uri)
-            content = unpickler(file)  # create a callback with binary data
-            print type(content)
-            print content.content
-            test_adapter.register_uri(
-                "GET", uri, content=content, status_code=200)
-
-    @staticmethod
-    def get(*args, **kwargs):
-        
-        uri = args[0]
-        
-        data_path  = MockResults.get_date_path()
-        data_files = files(data_path, absolute=True)
-        
-        no_results = os.path.join(data_path, "no_results")
-        file       = MockResults.file_path(data_path, uri)
-
-        if os.path.isfile(file):
-            return unpickler(file)
-        else:
-            return unpickler(no_results)
+    if os.path.isfile(file):
+        return unpickler(file)
+    else:
+        return unpickler(no_results)
 
 
 def get_results_pages(county, offer, area):
-
-    date = get_datestamp()
+    # Create folder for today's data
+    date = datetime.datetime.now().strftime('%Y-%m-%d')
     path = os.path.join(os.getcwd(), "tests/data/{}".format(date))
-    
     if not os.path.isdir(path): os.makedirs(path)
 
     results = SummaryResultPages(
-        county=county, 
-        offer=offer, 
-        area=area, 
-        mode="response"   # get the raw response so that we can replace 
+        county=county,
+        offer=offer,
+        area=area,
+        mode="response"   # get the raw response so that we can replace
                           # when mocking the requestst
     )
 
@@ -149,21 +107,19 @@ def get_results_pages(county, offer, area):
     print "Gathering results for : {}".format(results.target)
 
     for offset, url, response in HttpResponseIterator(results):
-        
         out  = MockResults.file_path(path, url)
-        
+
         print ">> URL is - '{}'".format(url)
 
         if not os.path.isfile(out):
-        
-            print ">> Grab it ..."      
+
+            print ">> Grab it ..."
             print ">> Save    - '{}'".format(out)
 
-        else: 
+        else:
 
             print "Got it already ..."
 
-        #import pdb; pdb.set_trace()
         pickler(response, out)
 
     offset += 10
@@ -181,13 +137,13 @@ def gather_test_data():
 
     county   = "dublin"
     for_sale = "property-for-sale"
-    new_home = "new-homes-for-sale" 
+    new_home = "new-homes-for-sale"
 
     areas = [
-        "walkinstown", 
-        "rathmines", 
-        "rathfarnham", 
-        "terenure", 
+        "walkinstown",
+        "rathmines",
+        "rathfarnham",
+        "terenure",
         "churchtown",
         "cherrywood",
     ]

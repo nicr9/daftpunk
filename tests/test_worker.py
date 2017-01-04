@@ -3,7 +3,8 @@ import docker
 import pytest
 import requests
 
-from mock_results import MockResults
+from mock_results import mock_get
+from docker.errors import NotFound
 
 
 class TestWorker(object):
@@ -16,8 +17,7 @@ class TestWorker(object):
 
     def setup_class(cls):
         # Monkey patch requests so we can access tests data
-        MockResults.set_earliest_date()
-        requests.get = MockResults.get
+        requests.get = mock_get
 
         # Use a local install of docker for testing
         cls.docker = docker.Client(base_url="unix://var/run/docker.sock")
@@ -35,7 +35,10 @@ class TestWorker(object):
             cls.docker.pull(cls.repo, tag=cls.tag)
 
         # Clean up docker containers
-        cls.docker.remove_container(cls.container_name, force=True)
+        try:
+            cls.docker.remove_container(cls.container_name, force=True)
+        except NotFound:
+            pass
 
     def setup_method(self):
         # Create an redis container
