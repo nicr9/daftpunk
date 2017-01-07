@@ -1,6 +1,6 @@
 from urlparse import parse_qs, urlparse
 
-VERSION = 'v0.3.2'
+VERSION = 'v0.4.0'
 
 def stats(resp):
     if resp.history:

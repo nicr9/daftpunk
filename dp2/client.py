@@ -10,7 +10,6 @@ class DaftClient(object):
         self.redis = redis
         self.session = requests.Session()
         self.logged_in = False
-        self.refresh()
 
     def login(self, user, passwd):
         url = "http://www.daft.ie/my-daft/"
@@ -28,9 +27,6 @@ class DaftClient(object):
         # TODO: Check that login attempt succeeded
         self.logged_in = True
 
-    def refresh(self):
-        self.counties = self.get_counties()
-
     def get_saved_properties(self):
         if self.logged_in:
             resp = self.session.get(
@@ -46,15 +42,23 @@ class DaftClient(object):
                     if 'empty' in prop['class']
                     ] if grid else []
 
-    def get_counties(self):
-        resp = self.session.get("https://daft.ie/searchsale.daft", headers=H_COMMON)
-        soup = BeautifulSoup(resp.text, "html")
-        return {op.text.strip(): op['value']
-                for op in soup.find("form").find("select").find_all("option")
-                if op['value']}
+    @property
+    def counties(self):
+        key = "dp:counties"
+        if self.redis.exists(key):
+            results = self.redis.hgetall(key)
+        else:
+            resp = self.session.get("https://daft.ie/searchsale.daft", headers=H_COMMON)
+            soup = BeautifulSoup(resp.text, "html")
+            results = {op.text.strip(): op['value']
+                    for op in soup.find("form").find("select").find_all("option")
+                    if op['value']}
+            self.redis.hmset(key, results)
+
+        return results
 
     def get_regions(self, county):
-        if not county in self.counties:
+        if county not in self.counties:
             return
 
         payload = {
