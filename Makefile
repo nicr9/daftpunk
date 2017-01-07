@@ -28,6 +28,8 @@ deploy:
 	kubectl apply -f manifests/daftpunk-configmap.yaml
 	kubectl apply -f manifests/postgres-service.yaml
 	kubectl apply -f manifests/postgres-pod.yaml
+	kubectl apply -f manifests/redis-service.yaml
+	kubectl apply -f manifests/redis-pod.yaml
 	kubectl apply -f manifests/daftpunk-service.yaml
 	kubectl apply -f manifests/daftpunk-deployment.yaml
 
@@ -35,6 +37,8 @@ teardown:
 	kubectl delete -f manifests/daftpunk-configmap.yaml
 	kubectl delete -f manifests/postgres-service.yaml
 	kubectl delete -f manifests/postgres-pod.yaml
+	kubectl delete -f manifests/redis-service.yaml
+	kubectl delete -f manifests/redis-pod.yaml
 	kubectl delete -f manifests/daftpunk-service.yaml
 	kubectl delete -f manifests/daftpunk-deployment.yaml
 
@@ -54,3 +58,6 @@ shell-flask:
 
 psql:
 	kubectl exec -it daftpunk-postgres -- psql -U daftpunk -W
+
+redis:
+	kubectl exec -it daftpunk-redis -- redis-cli

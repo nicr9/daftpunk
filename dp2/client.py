@@ -6,7 +6,8 @@ from dp2 import H_AJAX, H_COMMON, H_FORM
 
 
 class DaftClient(object):
-    def __init__(self):
+    def __init__(self, redis):
+        self.redis = redis
         self.session = requests.Session()
         self.logged_in = False
         self.refresh()

@@ -31,3 +31,8 @@ spec:
             configMapKeyRef:
               name: daftpunk-config
               key: db.password
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: daftpunk-config
+              key: redis.url

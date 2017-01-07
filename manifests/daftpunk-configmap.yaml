@@ -7,3 +7,4 @@ data:
     secret.key: 'THIS IS AN INSECURE SECRET'
     db.url: 'postgres://daftpunk:supersecret@daftpunk-postgres:5432/daftpunk'
     db.password: 'supersecret'
+    redis.url: 'redis://daftpunk-redis:6379/0'

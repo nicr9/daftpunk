@@ -1,16 +1,13 @@
 import os
 import json
 
-print "importing modules..."
-
 from flask import Flask, render_template, redirect, flash, request, abort
 from flask_sqlalchemy import SQLAlchemy
+from flask_redis import FlaskRedis
 from flask_login import login_required, LoginManager, login_user, logout_user, current_user
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
-
-print "All modules imported!"
 
 ## Util functions
 
@@ -22,21 +19,22 @@ def get_choices(N):
 
 ## Set up flask
 
-print "Initialising flask..."
 app = Flask(__name__)
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] =              os.getenv('SECRET_KEY',       'THIS IS AN INSECURE SECRET')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL',     'sqlite:///basic_app.sqlite')
 app.config['CSRF_ENABLED'] = True
+app.config['REDIS_URL'] = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 
-print "Initialising LoginManager..."
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+redis = FlaskRedis()
+redis.init_app(app)
+
 ## Models
 
-print "Initialising SQLAlchemy..."
 db = SQLAlchemy(app)
 
 class User(db.Model):
@@ -82,9 +80,7 @@ class Region(db.Model):
 def load_user(username):
     return User.query.get(username)
 
-print "Initialising database..."
 db.create_all()
-print "Done!"
 
 ## Forms
 
@@ -159,7 +155,7 @@ def user_profile(username):
 def get_regions():
     key = request.form.keys()[0]
     if key:
-        client = DaftClient()
+        client = DaftClient(redis)
         data = client.get_regions(key)
         return json.dumps(data), 200
     return '[]', 400
@@ -167,7 +163,7 @@ def get_regions():
 @app.route('/new_region', methods=['GET', 'POST'])
 @login_required
 def new_region():
-    client = DaftClient()
+    client = DaftClient(redis)
 
     form = RegionForm()
     if form.is_submitted():
@@ -193,5 +189,4 @@ def signout():
     return redirect('/')
 
 if __name__ == "__main__":
-    print "Testing main..."
     app.run(host="0.0.0.0", debug=True)

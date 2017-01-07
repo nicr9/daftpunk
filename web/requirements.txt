@@ -2,5 +2,6 @@ Flask
 Flask-Login
 Flask-SQLAlchemy
 Flask-WTF
+Flask-Redis
 psycopg2
 daftpunk
