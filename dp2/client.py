@@ -57,21 +57,38 @@ class DaftClient(object):
 
         return results
 
+    def get_county(self, county):
+        key = "dp:counties"
+        if self.redis.exists(key):
+            results = self.redis.hget(key, county)
+        else:
+            results = self.counties[key]
+
+        return results
+
     def get_regions(self, county):
-        if county not in self.counties:
+        counties = self.counties
+        if county not in counties:
             return
 
-        payload = {
-                    "cc_id": self.counties[county],
-                    "search_type": "sale",
-                    "clean": 1,
-                    }
-        temp = payload.copy()
+        key = "dp:regions:{}".format(self.get_county(county))
+        if self.redis.exists(key):
+            results = self.redis.lrange(key, 0, -1)
+        else:
+            payload = {
+                        "cc_id": self.get_county(county),
+                        "search_type": "sale",
+                        "clean": 1,
+                        }
 
-        # NB: For some reason, this only works if you run the request twice?
-        _ = self.session.post("https://daft.ie/sales/getAreas/",  data=payload, headers=H_AJAX)
-        resp = self.session.post("https://daft.ie/sales/getAreas/",  data=payload, headers=H_AJAX)
+            # NB: For some reason, this only works if you run the request twice?
+            _ = self.session.post("https://daft.ie/sales/getAreas/",  data=payload, headers=H_AJAX)
+            resp = self.session.post("https://daft.ie/sales/getAreas/",  data=payload, headers=H_AJAX)
 
-        soup = BeautifulSoup(resp.text, "html")
-        regions = soup.find_all("span", **{'class': "multi-select-item-large"})
-        return [re.split("\s\(\d*\)$", r.text)[0] for r in regions]
+            soup = BeautifulSoup(resp.text, "html")
+            regions = soup.find_all("span", **{'class': "multi-select-item-large"})
+
+            results = [re.split("\s\(\d*\)$", r.text)[0] for r in regions]
+            self.redis.lpush(key, *results)
+
+        return results
