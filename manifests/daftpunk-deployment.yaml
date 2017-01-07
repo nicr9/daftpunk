@@ -16,16 +16,6 @@ spec:
         ports:
         - containerPort: 5000
         env:
-        - name: DAFT_USER
-          valueFrom:
-            configMapKeyRef:
-              name: daftpunk-config
-              key: daft.username
-        - name: DAFT_PASSWD
-          valueFrom:
-            configMapKeyRef:
-              name: daftpunk-config
-              key: daft.password
         - name: SECRET_KEY
           valueFrom:
             configMapKeyRef:

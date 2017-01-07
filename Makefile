@@ -10,10 +10,8 @@ test: down
 		--name daftpunk-web \
 		nicr9/dp2_web:latest
 
-install: install-py build
-
-install-py:
-	python setup.py develop
+develop:
+	sudo python setup.py develop
 
 push-py:
 	python setup.py sdist upload -r pypi
@@ -22,7 +20,7 @@ build:
 	docker build -t nicr9/dp2_web:latest -f web/Dockerfile web
 	docker push nicr9/dp2_web:latest
 
-rebuild:
+rebuild: push-py
 	docker build -t nicr9/dp2_web:latest --no-cache -f web/Dockerfile web
 	docker push nicr9/dp2_web:latest
 
@@ -50,6 +48,9 @@ python:
 	kubectl run \
 		-it --image=nicr9/dp2_web:latest --rm \
 		sh -- python /usr/src/app/app.py
+
+shell-flask:
+	kubectl exec -it `kubectl get po --selector app=flask --no-headers -o custom-columns=:.metadata.name` -- /bin/sh
 
 psql:
 	kubectl exec -it daftpunk-postgres -- psql -U daftpunk -W

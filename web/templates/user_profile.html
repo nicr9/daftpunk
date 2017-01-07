@@ -21,6 +21,7 @@ tr:nth-child(even) {
 {% block main_content %}
       <h1>Hey {{ current_user.username }}!</h1>
       {% if regions | length > 0 %}
+      <h3>Regions</h3>
       <table>
           <tr>
               <th>County</th>

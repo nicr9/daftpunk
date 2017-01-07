@@ -4,8 +4,6 @@ metadata:
   name: daftpunk-config
   namespace: default
 data:
-    daft.username: ''
-    daft.password: ''
     secret.key: 'THIS IS AN INSECURE SECRET'
-    db.url: 'postgres://daftpunk:supersecret@daftpunk-postgres:30306/daftpunk'
+    db.url: 'postgres://daftpunk:supersecret@daftpunk-postgres:5432/daftpunk'
     db.password: 'supersecret'

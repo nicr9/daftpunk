@@ -12,11 +12,6 @@ from dp2.client import DaftClient
 
 print "All modules imported!"
 
-## Env vars
-
-DAFT_USER = os.environ['DAFT_USER']
-DAFT_PASSWD = os.environ['DAFT_PASSWD']
-
 ## Util functions
 
 def get_choices(N):
