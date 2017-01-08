@@ -24,3 +24,10 @@ services:
       - redis:daftpunk-redis
     ports:
       - 5000:5000
+
+  scripts:
+    build: ./scripts
+    environment:
+      REDIS_URL: 'redis://daftpunk-redis:6379/0'
+    links:
+      - redis:daftpunk-redis

@@ -2,6 +2,7 @@ HUB_USER=nicr9
 
 DP2_BASE=${HUB_USER}/dp2-base
 DP2_WEB=${HUB_USER}/dp2-web
+DP2_SCRIPTS=${HUB_USER}/dp2-scripts
 
 WEB_SERVICE=daftpunk-web
 
@@ -10,19 +11,29 @@ WEB_SERVICE=daftpunk-web
 base-build:
 	docker build -t ${DP2_BASE}:latest .
 
-base-push:
-	docker push ${DP2_BASE}:latest
-
 dp2-push:
 	python setup.py sdist upload -r pypi
+
+base-push:
+	docker push ${DP2_BASE}:latest
 
 web-build:
 	docker build -t ${DP2_WEB}:latest -f web/Dockerfile web
 	docker push ${DP2_WEB}:latest
 
-web-rebuild: dp2-push
+web-rebuild:
 	docker build -t ${DP2_WEB}:latest --no-cache -f web/Dockerfile web
 	docker push ${DP2_WEB}:latest
+
+scripts-build:
+	docker build -t ${DP2_SCRIPTS}:latest -f scripts/Dockerfile scripts
+	docker push ${DP2_SCRIPTS}:latest
+
+scripts-rebuild:
+	docker build -t ${DP2_SCRIPTS}:latest --no-cache -f scripts/Dockerfile scripts
+	docker push ${DP2_SCRIPTS}:latest
+
+publish-all: base-build dp2-push base-push web-rebuild scripts-rebuild
 
 # Development environment
 
@@ -41,14 +52,27 @@ dev-down:
 	docker-compose down
 
 dev-psql:
-	docker-compose exec -it postgres -- psql -U daftpunk -W
+	docker-compose exec postgres psql -U daftpunk -W
 
 dev-redis:
-	docker-compose exec -it redis -- redis-cli
+	docker-compose exec redis redis-cli
 
 dev-open:
 	google-chrome --incognito 0.0.0.0:5000
-	#
+
+dev-scripts-retrieve-cache:
+	docker-compose run scripts python cache.py retrieve
+
+dev-scripts-backup-cache:
+	docker-compose run scripts python cache.py backup
+	docker cp `docker ps -lq`:/usr/src/app/data/cache.json scripts/data/
+
+dev-scripts-flush-cache:
+	docker-compose run scripts python cache.py flush
+
+dev-scripts-restore-cache:
+	docker-compose run scripts python cache.py restore
+
 # Kubernetes environment
 
 prod-up:
