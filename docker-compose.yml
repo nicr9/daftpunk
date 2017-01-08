@@ -1,15 +1,26 @@
-queue:
-    image: rabbitmq
-worker:
-    build: .
-    links:
-        - db:redis
-        - queue:rabbitmq
-db:
-    image: redis
-web:
-    build: frontend
-    links:
-        - db:redis
+version: "2"
+services:
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: 'daftpunk'
+      POSTGRES_PASSWORD: 'supersecret'
+      POSTGRES_DATABASE: 'daftpunk'
     ports:
-        - 5000:5000
+      - 5432
+
+  redis:
+    image: redis
+    ports:
+      - 6379
+
+  web:
+    build: ./web
+    environment:
+      DATABASE_URL: 'postgres://daftpunk:supersecret@daftpunk-postgres:5432/daftpunk'
+      REDIS_URL: 'redis://daftpunk-redis:6379/0'
+    links:
+      - postgres:daftpunk-postgres
+      - redis:daftpunk-redis
+    ports:
+      - 5000:5000

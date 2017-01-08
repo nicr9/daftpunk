@@ -1,30 +1,57 @@
-service=daftpunk-web
+HUB_USER=nicr9
 
-down:
-	docker rm -f daftpunk-web || true
+DP2_BASE=${HUB_USER}/dp2-base
+DP2_WEB=${HUB_USER}/dp2-web
 
-test: down
-	docker run \
-		-p 5000:5000 \
-		-d \
-		--name daftpunk-web \
-		nicr9/dp2_web:latest
+WEB_SERVICE=daftpunk-web
 
-develop:
-	sudo python setup.py develop
+# Build/publish
 
-push-py:
+base-build:
+	docker build -t ${DP2_BASE}:latest .
+
+base-push:
+	docker push ${DP2_BASE}:latest
+
+dp2-push:
 	python setup.py sdist upload -r pypi
 
-build:
-	docker build -t nicr9/dp2_web:latest -f web/Dockerfile web
-	docker push nicr9/dp2_web:latest
+web-build:
+	docker build -t ${DP2_WEB}:latest -f web/Dockerfile web
+	docker push ${DP2_WEB}:latest
 
-rebuild: push-py
-	docker build -t nicr9/dp2_web:latest --no-cache -f web/Dockerfile web
-	docker push nicr9/dp2_web:latest
+web-rebuild: dp2-push
+	docker build -t ${DP2_WEB}:latest --no-cache -f web/Dockerfile web
+	docker push ${DP2_WEB}:latest
 
-deploy:
+# Development environment
+
+dev-build:
+	docker-compose build
+
+dev-rebuild: base-build
+	docker-compose build --no-cache
+
+dev-up:
+	docker-compose up -d postgres redis
+	sleep 10
+	docker-compose up -d web
+
+dev-down:
+	docker-compose down
+
+dev-psql:
+	docker-compose exec -it postgres -- psql -U daftpunk -W
+
+dev-redis:
+	docker-compose exec -it redis -- redis-cli
+
+dev-open:
+	google-chrome --incognito 0.0.0.0:5000
+	#
+# Kubernetes environment
+
+prod-up:
 	kubectl apply -f manifests/daftpunk-configmap.yaml
 	kubectl apply -f manifests/postgres-service.yaml
 	kubectl apply -f manifests/postgres-pod.yaml
@@ -33,7 +60,7 @@ deploy:
 	kubectl apply -f manifests/daftpunk-service.yaml
 	kubectl apply -f manifests/daftpunk-deployment.yaml
 
-teardown:
+prod-down:
 	kubectl delete -f manifests/daftpunk-configmap.yaml
 	kubectl delete -f manifests/postgres-service.yaml
 	kubectl delete -f manifests/postgres-pod.yaml
@@ -42,22 +69,22 @@ teardown:
 	kubectl delete -f manifests/daftpunk-service.yaml
 	kubectl delete -f manifests/daftpunk-deployment.yaml
 
-open:
-	google-chrome --incognito `minikube service ${service} --url`
-
-shell:
+prod-shell:
 	kubectl run -it --image=alpine --rm sh --command -- /bin/sh
 
-python:
-	kubectl run \
-		-it --image=nicr9/dp2_web:latest --rm \
-		sh -- python /usr/src/app/app.py
-
-shell-flask:
+prod-web:
 	kubectl exec -it `kubectl get po --selector app=flask --no-headers -o custom-columns=:.metadata.name` -- /bin/sh
 
-psql:
+prod-psql:
 	kubectl exec -it daftpunk-postgres -- psql -U daftpunk -W
 
-redis:
+prod-redis:
 	kubectl exec -it daftpunk-redis -- redis-cli
+
+prod-open:
+	google-chrome --incognito `minikube service ${WEB_SERVICE} --url`
+
+# Utils
+
+install:
+	sudo python setup.py develop

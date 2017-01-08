@@ -12,7 +12,7 @@ spec:
     spec:
       containers:
       - name: flask
-        image: nicr9/dp2_web:latest
+        image: nicr9/dp2-web:latest
         ports:
         - containerPort: 5000
         env:
@@ -26,11 +26,6 @@ spec:
             configMapKeyRef:
               name: daftpunk-config
               key: db.url
-        - name: DATABASE_PASSWD
-          valueFrom:
-            configMapKeyRef:
-              name: daftpunk-config
-              key: db.password
         - name: REDIS_URL
           valueFrom:
             configMapKeyRef:

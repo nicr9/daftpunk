@@ -1,19 +1,7 @@
-FROM ubuntu:14.04
+FROM python:2
 MAINTAINER Nic Roland "nicroland9@gmail.com"
 
-ENV TERM xterm
-
-RUN apt-get update && apt-get install -y python python-setuptools
-
-ADD . /opt/daftpunk
-WORKDIR /opt/daftpunk
-RUN python2.7 setup.docker install
-RUN python2.7 -c "import nltk; nltk.download('punkt')"
-
-ADD daftpunk/config/docker.json /etc/daftpunk/config.json
-
-# Setup cron job
-RUN echo "0 0 * * * /usr/local/bin/dp_searcher" > /opt/cron_job
-RUN crontab /opt/cron_job
-
-ENTRYPOINT cron -f
+WORKDIR /opt
+COPY setup.py setup.cfg /opt/
+COPY dp2 /opt/dp2/
+RUN python setup.py develop
