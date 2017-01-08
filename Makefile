@@ -84,6 +84,8 @@ prod-up:
 	kubectl apply -f manifests/daftpunk-service.yaml
 	kubectl apply -f manifests/daftpunk-deployment.yaml
 
+prod-post-up: prod-scripts-restore-cache clean-jobs
+
 prod-down:
 	kubectl delete -f manifests/daftpunk-configmap.yaml
 	kubectl delete -f manifests/postgres-service.yaml
@@ -108,7 +110,35 @@ prod-redis:
 prod-open:
 	google-chrome --incognito `minikube service ${WEB_SERVICE} --url`
 
+prod-scripts-retrieve-cache:
+	sed \
+		-e 's/SCRIPT/cache.py/g' \
+		-e 's/CMD/retrieve/g' \
+		manifests/scripts-job.yaml | kubectl create -f -
+
+prod-scripts-backup-cache:
+	sed \
+		-e 's/SCRIPT/cache.py/g' \
+		-e 's/CMD/backup/g' \
+		manifests/scripts-job.yaml | kubectl create -f -
+	#docker cp `docker ps -lq`:/usr/src/app/data/cache.json scripts/data/
+
+prod-scripts-flush-cache:
+	sed \
+		-e 's/SCRIPT/cache.py/g' \
+		-e 's/CMD/flush/g' \
+		manifests/scripts-job.yaml | kubectl create -f -
+
+prod-scripts-restore-cache:
+	sed \
+		-e 's/SCRIPT/cache.py/g' \
+		-e 's/CMD/restore/g' \
+		manifests/scripts-job.yaml | kubectl create -f -
+
 # Utils
+
+clean-jobs:
+	kubectl get jobs --no-headers -o=custom-columns=NAME:.metadata.name | xargs kubectl delete jobs
 
 install:
 	sudo python setup.py develop

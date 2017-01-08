@@ -1,0 +1,23 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: daftpunk-scripts-CMD
+spec:
+  template:
+    metadata:
+      name: daftpunk-scripts
+      labels:
+        app: scripts
+        context: daftpunk
+    spec:
+      containers:
+      - name: scripts
+        image: nicr9/dp2-scripts
+        command: ["python", "SCRIPT", "CMD"]
+        env:
+          - name: REDIS_URL
+            valueFrom:
+              configMapKeyRef:
+                name: daftpunk-config
+                key: redis.url
+      restartPolicy: Never
