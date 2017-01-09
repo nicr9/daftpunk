@@ -1,5 +1,6 @@
 import os
 import json
+from hashlib import sha1
 
 from flask import Flask, render_template, redirect, flash, request, abort
 from flask_sqlalchemy import SQLAlchemy
@@ -8,6 +9,7 @@ from flask_login import login_required, LoginManager, login_user, logout_user, c
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
+from dp2 import PROPERTY_TYPES
 
 ## Util functions
 
@@ -64,17 +66,30 @@ class User(db.Model):
         """False, as anonymous users aren't supported."""
         return False
 
-class Region(db.Model):
-    __tablename__ = 'region'
+class TargetRegion(db.Model):
+    __tablename__ = 'targetregion'
 
-    username = db.Column(db.String, db.ForeignKey('user.username'), primary_key=True)
     county = db.Column(db.String, primary_key=True)
     region = db.Column(db.String, primary_key=True)
+    property_type = db.Column(db.String, primary_key=True)
+    sha = db.Column(db.String, unique=True)
 
-    def __init__(self, username, form):
-        self.username = username
+    def __init__(self, form):
         self.county = form.county.data
         self.region = form.region.data
+        self.property_type = form.property_type.data
+        key = ":".join([self.county, self.region, self.property_type])
+        self.sha = sha1(key).hexdigest()
+
+class UserSubscription(db.Model):
+    __tablename__ = 'usersubscription'
+
+    username = db.Column(db.String, db.ForeignKey('user.username'), primary_key=True)
+    region = db.Column(db.String, db.ForeignKey('targetregion.sha'), primary_key=True)
+
+    def __init__(self, username, region):
+        self.username = username.get_id()
+        self.region = region.sha
 
 @login_manager.user_loader
 def load_user(username):
@@ -96,6 +111,7 @@ class NewUserForm(Form):
 class RegionForm(Form):
     county = SelectField('County', choices=[])
     region = SelectField('Region', choices=[])
+    property_type = SelectField('Property Type', choices=PROPERTY_TYPES)
 
 ## Routes
 
@@ -147,7 +163,9 @@ def features():
 @login_required
 def user_profile(username):
     user = load_user(username)
-    regions = Region.query.filter_by(username=user.username).all()
+    subscriptions = UserSubscription.query.filter_by(username=user.username).all()
+    region_ids = [sub.region for sub in subscriptions]
+    regions = TargetRegion.query.filter(TargetRegion.sha.in_(region_ids)).all()
     return render_template('user_profile.html', user=user, regions=regions)
 
 @app.route('/get/regions', methods=['POST'])
@@ -167,10 +185,12 @@ def new_region():
 
     form = RegionForm()
     if form.is_submitted():
-        region = Region(current_user.get_id(), form)
+        region = TargetRegion(form)
+        subscription = UserSubscription(current_user, region)
 
         try:
             db.session.add(region)
+            db.session.add(subscription)
             db.session.commit()
         except:
             db.session.rollback()

@@ -34,6 +34,7 @@
         {{ form.csrf_token }}
         {{ form.county.label }} {{ form.county(onchange="submit_county()") }}<br>
         {{ form.region.label }} {{ form.region() }}<br>
+        {{ form.property_type.label }} {{ form.property_type() }}<br>
         <input type="submit" value="Subscribe">
       </form>
 {% endblock %}

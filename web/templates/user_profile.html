@@ -26,12 +26,14 @@ tr:nth-child(even) {
           <tr>
               <th>County</th>
               <th>Region</th>
+              <th>Property Type</th>
           </tr>
 
           {% for region in regions %}
           <tr>
               <td>{{ region.county }}</td>
               <td>{{ region.region }}</td>
+              <td>{{ region.property_type }}</td>
           </tr>
           {% endfor %}
       </table>

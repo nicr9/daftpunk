@@ -1,6 +1,14 @@
 from urlparse import parse_qs, urlparse
 
-VERSION = '0.4.3'
+VERSION = '0.4.4'
+PROPERTY_TYPES = [
+        ('houses-for-sale',    'Houses for sale'),
+        ('apartments-for-sale','Apartments for sale'),
+        ('houses-for-auction', 'Houses for auction'),
+        ('property-for-sale',  'Property for sale'),
+        ('houses-for-rent',    'Houses for rent'),
+        ('apartments-for-rent','Apartments for rent'),
+        ]
 
 def stats(resp):
     if resp.history:

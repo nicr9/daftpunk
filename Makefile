@@ -48,6 +48,8 @@ dev-up:
 	sleep 10
 	docker-compose up -d web
 
+dev-post-up: dev-scripts-restore-cache
+
 dev-down:
 	docker-compose down
 
