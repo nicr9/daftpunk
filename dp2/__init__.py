@@ -1,14 +1,18 @@
 from urlparse import parse_qs, urlparse
 
-VERSION = '0.4.4'
-PROPERTY_TYPES = [
-        ('houses-for-sale',    'Houses for sale'),
-        ('apartments-for-sale','Apartments for sale'),
-        ('houses-for-auction', 'Houses for auction'),
-        ('property-for-sale',  'Property for sale'),
-        ('houses-for-rent',    'Houses for rent'),
-        ('apartments-for-rent','Apartments for rent'),
-        ]
+VERSION = '0.4.5'
+PROPERTY_TYPES = {
+        'Houses for sale': {'pt_id': 1, 'searchSource': 'sale'},
+        'Apartment for sale': {'pt_id': 2, 'searchSource': 'sale'},
+        'Duplex for sale': {'pt_id': 3, 'searchSource': 'sale'},
+        'Bungalow for sale': {'pt_id': 4, 'searchSource': 'sale'},
+        'Site for sale': {'pt_id': 5, 'searchSource': 'sale'},
+        'Studio apartment for sale': {'pt_id': 6, 'searchSource': 'sale'},
+        'Apartment to rent': {'pt_id': 1, 'searchSource': 'rental'},
+        'House to rent': {'pt_id': 2, 'searchSource': 'rental'},
+        'Studio apartment to rent': {'pt_id': 3, 'searchSource': 'rental'},
+        'Flat to rent': {'pt_id': 4, 'searchSource': 'rental'},
+        }
 
 def stats(resp):
     if resp.history:

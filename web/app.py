@@ -111,7 +111,7 @@ class NewUserForm(Form):
 class RegionForm(Form):
     county = SelectField('County', choices=[])
     region = SelectField('Region', choices=[])
-    property_type = SelectField('Property Type', choices=PROPERTY_TYPES)
+    property_type = SelectField('Property Type', choices=[(label, label) for label in PROPERTY_TYPES])
 
 ## Routes
 
