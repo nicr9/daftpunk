@@ -50,33 +50,33 @@ class DaftClient(object):
         else:
             resp = self.session.get("https://daft.ie/searchsale.daft", headers=H_COMMON)
             soup = BeautifulSoup(resp.text, "html")
-            results = {op.text.strip(): op['value']
+            results = {op['value']: op.text.strip()
                     for op in soup.find("form").find("select").find_all("option")
                     if op['value']}
             self.redis.hmset(key, results)
 
         return results
 
-    def get_county(self, county):
+    def get_county_label(self, county_code):
         key = "dp:counties"
         if self.redis.exists(key):
-            results = self.redis.hget(key, county)
+            results = self.redis.hget(key, county_code)
         else:
             results = self.counties[key]
 
         return results
 
-    def get_regions(self, county):
+    def get_region_codes(self, county_code):
         counties = self.counties
-        if county not in counties:
+        if county_code not in counties:
             return
 
-        key = "dp:regions:{}".format(self.get_county(county))
+        key = "dp:counties:{}".format(county_code)
         if self.redis.exists(key):
             results = self.redis.lrange(key, 0, -1)
         else:
             payload = {
-                        "cc_id": self.get_county(county),
+                        "cc_id": county_code,
                         "search_type": "sale",
                         "clean": 1,
                         }
@@ -88,7 +88,27 @@ class DaftClient(object):
             soup = BeautifulSoup(resp.text, "html")
             regions = soup.find_all("span", **{'class': "multi-select-item-large"})
 
-            results = [re.split("\s\(\d*\)$", r.text)[0] for r in regions]
+            def get_region_data(r):
+                try:
+                    code = r.parent['for'].split('_')[-1]
+                    label = re.split("\s\(\d*\)$", r.text)[0]
+                    return code, label
+                except TypeError as e:
+                    return
+
+            region_data = dict(get_region_data(r) for r in regions)
+            self.redis.hmset("dp:regions", region_data)
+
+            results = region_data.keys()
             self.redis.lpush(key, *results)
 
         return results
+
+    def get_region_label(self, region_code):
+        return self.redis.hget("dp:regions", region_code)
+
+    def translate_regions(self, region_codes):
+        return {code: self.get_region_label(code) for code in region_codes}
+
+    def search(self, county_code, region, property_type):
+        pass

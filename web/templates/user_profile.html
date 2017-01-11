@@ -31,9 +31,9 @@ tr:nth-child(even) {
 
           {% for region in regions %}
           <tr>
-              <td>{{ region.county }}</td>
-              <td>{{ region.region }}</td>
-              <td>{{ region.property_type }}</td>
+              <td>{{ region['county'] }}</td>
+              <td>{{ region['region'] }}</td>
+              <td>{{ region['property_type'] }}</td>
           </tr>
           {% endfor %}
       </table>

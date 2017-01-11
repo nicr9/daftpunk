@@ -4,6 +4,7 @@ from hashlib import sha1
 
 from flask import Flask, render_template, redirect, flash, request, abort
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.exc import IntegrityError
 from flask_redis import FlaskRedis
 from flask_login import login_required, LoginManager, login_user, logout_user, current_user
 from wtforms import TextField, PasswordField, SelectField
@@ -14,7 +15,7 @@ from dp2 import PROPERTY_TYPES
 ## Util functions
 
 def get_choices(N):
-    choices = [(key, key) for key, val in N.iteritems()]
+    choices = sorted(N.iteritems())
     choices.insert(0, (0, '---'))
 
     return choices
@@ -166,7 +167,14 @@ def user_profile(username):
     subscriptions = UserSubscription.query.filter_by(username=user.username).all()
     region_ids = [sub.region for sub in subscriptions]
     regions = TargetRegion.query.filter(TargetRegion.sha.in_(region_ids)).all()
-    return render_template('user_profile.html', user=user, regions=regions)
+    client = DaftClient(redis)
+    data = [{
+        'county': client.get_county_label(r.county),
+        'region': client.get_region_label(r.region),
+        'property_type': r.property_type,
+        'sha': r.sha,
+        } for r in regions]
+    return render_template('user_profile.html', user=user, regions=data)
 
 @app.route('/get/regions', methods=['POST'])
 @login_required
@@ -174,7 +182,9 @@ def get_regions():
     key = request.form.keys()[0]
     if key:
         client = DaftClient(redis)
-        data = client.get_regions(key)
+        regions = client.get_region_codes(key)
+        region_map = client.translate_regions(regions)
+        data = sorted(region_map.iteritems())
         return json.dumps(data), 200
     return '[]', 400
 
@@ -192,6 +202,9 @@ def new_region():
             db.session.add(region)
             db.session.add(subscription)
             db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            flash("Couldn't add region!")
         except:
             db.session.rollback()
             raise

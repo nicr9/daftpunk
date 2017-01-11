@@ -14,8 +14,8 @@
                         var regions = JSON.parse(data);
                         for(var i=0; i < regions.length; i++) {
                             var opt = document.createElement("option");
-                            opt.value=regions[i];
-                            opt.innerHTML = regions[i];
+                            opt.value=regions[i][0];
+                            opt.innerHTML = regions[i][1];
 
                             document.getElementById('region').add(opt);
                         }
