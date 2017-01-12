@@ -62,6 +62,9 @@ dev-redis:
 dev-open:
 	google-chrome --incognito 0.0.0.0:5000
 
+dev-backend:
+	docker-compose run scripts python backend.py
+
 dev-scripts-retrieve-cache:
 	docker-compose run scripts python cache.py retrieve
 

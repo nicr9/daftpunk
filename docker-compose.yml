@@ -28,6 +28,8 @@ services:
   scripts:
     build: ./scripts
     environment:
+      DATABASE_URL: 'postgres://daftpunk:supersecret@daftpunk-postgres:5432/daftpunk'
       REDIS_URL: 'redis://daftpunk-redis:6379/0'
     links:
       - redis:daftpunk-redis
+      - postgres:daftpunk-postgres
