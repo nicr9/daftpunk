@@ -1,0 +1,31 @@
+apiVersion: batch/v2alpha1
+kind: ScheduledJob
+metadata:
+  name: daftpunk-backend
+spec:
+  schedule: "0 0 * * *"
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: daftpunk-backend
+          labels:
+            app: backend
+            context: daftpunk
+        spec:
+          containers:
+          - name: backend
+            image: nicr9/dp2-scripts
+            command: ["python", "backend.py"]
+            env:
+              - name: REDIS_URL
+                valueFrom:
+                  configMapKeyRef:
+                    name: daftpunk-config
+                    key: redis.url
+              - name: DATABASE_URL
+                valueFrom:
+                  configMapKeyRef:
+                    name: daftpunk-config
+                    key: db.url
+          restartPolicy: Never

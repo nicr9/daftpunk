@@ -80,6 +80,9 @@ dev-scripts-restore-cache:
 
 # Kubernetes environment
 
+prod-build: web-build scripts-build
+prod-rebuild: base-build web-rebuild scripts-rebuild
+
 prod-up:
 	kubectl apply -f manifests/daftpunk-configmap.yaml
 	kubectl apply -f manifests/postgres-service.yaml
@@ -89,7 +92,7 @@ prod-up:
 	kubectl apply -f manifests/daftpunk-service.yaml
 	kubectl apply -f manifests/daftpunk-deployment.yaml
 
-prod-post-up: prod-scripts-restore-cache clean-jobs
+prod-post-up: prod-scripts-restore-cache clean-jobs prod-backend
 
 prod-down:
 	kubectl delete -f manifests/daftpunk-configmap.yaml
@@ -114,6 +117,9 @@ prod-redis:
 
 prod-open:
 	google-chrome --incognito `minikube service ${WEB_SERVICE} --url`
+
+prod-backend:
+	kubectl apply -f manifests/backend-job.yaml
 
 prod-scripts-retrieve-cache:
 	sed \
