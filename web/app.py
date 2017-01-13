@@ -143,6 +143,10 @@ def new_user():
         try:
             db.session.add(user)
             db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+            flash("That username is taken")
+            return redirect('/new_user')
         except:
             db.session.rollback()
             raise
