@@ -1,135 +1,150 @@
-# daftpunk
+# Daftpunk
 
-Scrapes details from daft.ie and stores it in Redis.
+A website for tracking and analysing the property market by scraping details from [daft.ie](http://www.daft.ie).
 
 ## Rewrite
 
-*N.B.* I'm currently embarking on a complete rewrite of daftpunk!
+**N.B.** I'm currently embarking on a complete rewrite of daftpunk!
 
 Both the old and new projects are currently visible within this branch so to
 clarify, the following paths describe files relating to the old project:
 
-* bin/\*
 * daftpunk/\*
 * frontend/\*
-* docker-compose.yml
-* Dockerfile
-* LICENSE
-* README.md
-* setup.\*
 
-And the following belong to the new version of the project:
-
-* dp2
-* web
+Everything else represents the bleeding edge version of the project.
 
 The reason for the rewrite is so I can take a whole new approach to the
 architecture and apply a lot of what I've learned about web scraping to achieve
 a much cleaner and more generally useful project.
 
-## Installation
+## Installing the dp2 Module
 
-### Install/Run on Docker
+If you're hoping to develop against the dp2 python module or submit patches to daftpunk, you'll need [python2.7](https://www.python.org/downloads/release/python-279/), [setuptools](https://pypi.python.org/pypi/setuptools) and [pip](https://pip.pypa.io/en/stable/installing/)!
+
+Finally, to install dp2:
+
+```bash
+make install
+```
+
+## Development Environment
+
+The development environment uses docker-compose to deploy daftpunk locally.
+
+You should assume that this mode is unsuitable for a production environment, for that see [Production deployment](#production-deployment) below.
+
+### Setup
 
 For help getting docker and docker-compose installed [checkout this page.](https://docs.docker.com/compose/install/)
 
-You'll also need [python2.7](https://www.python.org/downloads/release/python-279/) and the [setuptools package](https://pypi.python.org/pypi/setuptools)!
+### Build
 
-Next, you'll want to install the daftpunk CLI tool:
+This step is optional. You only need to do it if you're a developer working on daftpunk.
 
-```
-sudo python setup.cli install
-```
+If you're working on `dp2`, you'll need to rebuild everything:
 
-Then to build all the services and start them run the following:
-
-```
-sudo daftpunk go
+```bash
+make base-build dev-build
 ```
 
-This starts up the message queue, database, worker and a web frontend as containers.
+If you're working on the web app of anything in `scripts/` you just need to:
 
-The worker is set up to perform a search and process results every day at midnight.
-
-If you're a developer and need to trigger a search at will, run the following:
-
-```
-sudo daftpunk search
+```bash
+make dev-build
 ```
 
-At this point you can direct your browser to `localhost:5000` to see the frontend.
+### Deploy
 
-**N.B.**
+To deploy daftpunk locally:
 
-If you're using docker-machine to host these containers remotely, you'll need to replace `localhost` with the IP of the docker-engine.
-You can find the engine IP by running:
-
-```
-docker-machine ip <machine-name>
+```bash
+make dev-up dev-post-up
 ```
 
-### Install Manually on Ubuntu
+This starts up the postgres, redis and a web frontend as linked containers. It also initialises inportant info in the cache.
 
-**WARNING: Not officially tested/maintained, proceed with caution.**
+And to open the web app in Chrome:
 
-These instructions describe how to set up daftpunk without using docker. For this you won't need to install the daftpunk CLI tool (because it's purpose is mostly to simplify long docker commands.)
-
-If you try this and find the instructions here to be inaccurate/insufficient, please open a pull request. You're help will be greatly appriciated (even if it's just correcting my awful typos!)
-
-If, on the other hand, you try this and run into blocking issues, get in contact, we're happy to help!
-
-First install rabbitmq and enable the admin web console:
-
-```
-sudo apt-get install rabbitmq-server
-sudo rabbitmq-plugins enable rabbitmq_management
-sudo service rabbitmq-server restart
+```bash
+make dev-open
 ```
 
-Next up, install redis:
-```
-wget http://download.redis.io/redis-stable.tar.gz
-tar xvzf redis-stable.tar.gz
-cd redis-stable
-make
-sudo make install
+When you've created an account and subscribed to a few regions, you'll need the backend process to scrape the details for properties in your subscribed regions:
+
+```bash
+make dev-backend
 ```
 
-Then install all the python bits:
-```
-sudo pip install pika requests beautifulsoup4 redis nltk
-sudo python2.7 setup.docker install
-python2.7 -c "import nltk; nltk.download('punkt')"
+You'll need to trigger this backend process everytime you want updated info.
+
+### Teardown
+
+To tear down the development environment:
+
+```bash
+make dev-down
 ```
 
-Final step is to create a config file:
+## Production Deployment
 
-```
-sudo mkdir /etc/daftpunk/
-sudo cp daftpunk/config/localhost.json /etc/daftpunk/config.json
+The production environment uses [Kubernetes](https://kubernetes.io/) to deploy daftpunk. This can be locally using [Minikube](https://github.com/kubernetes/minikube) or to a server/cloud environment that has been set up using one of the [countless systems availabe](https://kubernetes.io/docs/getting-started-guides/).
+
+Daftpunk requires Kubernetes version 1.4+.
+
+### Setup
+
+Once you've set up a Kubernetes cluster and installed `kubectl` using the [guide in the docs](https://kubernetes.io/docs/user-guide/prereqs/) you should be good to deploy!
+
+If you'd like to build/develop daftpunk locally, you'll also need [Docker](https://docs.docker.com/engine/installation/linux/) installed.
+
+### Build
+
+This step is optional. You only need to do it if you're a developer working on daftpunk.
+
+If you're makind changes to `dp2`, you'll need to rebuild everything:
+
+```bash
+make base-build web-rebuild scripts-rebuild
 ```
 
-Then to perform a search and process any property pages run:
+If you're just making changes to the web app:
 
-```
-dp_searcher
-dp_worker # This command will block indefinitely
-```
-
-Finally, in an other shell, start the frontend server:
-
-```
-cd frontend
-python server.py
+```bash
+make web-build
 ```
 
-This will be served on `localhost:5000`.
+Or just one/more of the scripts (`cache.py`, `backend.py`, etc.):
+
+```bash
+make scripts-build
+```
+
+### Deploy
+
+Deploying to Kubernetes is simple:
+
+```bash
+make prod-up
+```
+
+This will deploy everything (including restoring info in cache and scheduling the backend script to scrape property info every night at 12:00).
+
+### Teardown
+
+To tear down the production environment:
+
+```bash
+make prod-down
+```
 
 ## Author
 
+```
 Name: Nic Roland<br>
 Email: nicroland9@gmail.com<br>
 Twitter: @nicr9_
+```
 
 ## Contributors
 

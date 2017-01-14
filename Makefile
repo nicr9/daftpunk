@@ -152,4 +152,5 @@ clean-jobs:
 	kubectl get jobs --no-headers -o=custom-columns=NAME:.metadata.name | xargs kubectl delete jobs
 
 install:
+	sudo pip install -r requirements.txt
 	sudo python setup.py develop
