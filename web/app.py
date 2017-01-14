@@ -208,7 +208,8 @@ def new_region():
             db.session.commit()
         except IntegrityError as e:
             db.session.rollback()
-            flash("Couldn't add region!")
+            flash("Duplicate region!")
+            return redirect('/new_region')
         except:
             db.session.rollback()
             raise
