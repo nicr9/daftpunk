@@ -1,7 +1,0 @@
-#! /usr/bin/env python2.7
-from daftpunk.worker import DpWorker
-from json import load
-
-with open('/etc/daftpunk/config.json') as inp:
-    config = load(inp)
-DpWorker(config)
