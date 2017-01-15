@@ -27,14 +27,17 @@ class DaftSearcher(object):
 
     @property
     def regions(self):
-        cur = self.pgsql.cursor()
-        cur.execute("SELECT county, region, property_type from targetregion")
-        return cur.fetchall()
+        with self.pgsql.cursor() as cur:
+            cur.execute("SELECT county, region, property_type, sha from targetregion")
+            return cur.fetchall()
 
     def run(self):
         for query in self.regions:
-            for property_code in self.client.search(*query):
+            for property_code in self.client.search(*query[:-1]):
                 self.client.update_property(property_code)
+            with self.pgsql.cursor() as cur:
+                cur.execute("UPDATE targetregion SET last_scraped = NOW() WHERE sha = '{}'".format(query[-1]))
+                self.pgsql.commit()
 
 if __name__ == "__main__":
     DaftSearcher()

@@ -78,6 +78,7 @@ class TargetRegion(db.Model):
     region = db.Column(db.String, primary_key=True)
     property_type = db.Column(db.String, primary_key=True)
     sha = db.Column(db.String, unique=True)
+    last_scraped = db.Column(db.DateTime, nullable=True)
 
     @classmethod
     def from_form(cls, form):
@@ -189,8 +190,16 @@ def user_profile(username):
         'region': client.get_region_label(r.region),
         'property_type': r.property_type,
         'sha': r.sha,
+        'last_scraped': r.last_scraped,
         } for r in regions]
-    return render_template('user_profile.html', user=user, regions=data)
+
+    awaiting_update = any([not row['last_scraped'] for row in data])
+    return render_template(
+            'user_profile.html',
+            user=user,
+            regions=data,
+            awaiting_update=awaiting_update
+            )
 
 @app.route('/get/regions', methods=['POST'])
 @login_required

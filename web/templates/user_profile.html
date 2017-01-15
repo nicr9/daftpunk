@@ -22,11 +22,16 @@ tr:nth-child(even) {
       <h1>Hey {{ current_user.username }}!</h1>
       {% if regions | length > 0 %}
       <h3>Regions</h3>
+      <p>Data for each region is scraped and processed daily (see "Last Scraped"). Newly subscribed regions may not have a dataset available yet, you may need to come back tomorrow.</p>
+      {% if awaiting_update %}
+      <p><b>Data for some regions is currently unavailable.</b></p>
+      {% endif %}
       <table>
           <tr>
               <th>County</th>
               <th>Region</th>
               <th>Property Type</th>
+              <th>Last Scraped</th>
           </tr>
 
           {% for region in regions %}
@@ -34,6 +39,7 @@ tr:nth-child(even) {
               <td>{{ region['county'] }}</td>
               <td>{{ region['region'] }}</td>
               <td>{{ region['property_type'] }}</td>
+              <td>{{ region['last_scraped'] }}</td>
           </tr>
           {% endfor %}
       </table>
