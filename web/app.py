@@ -79,12 +79,17 @@ class TargetRegion(db.Model):
     property_type = db.Column(db.String, primary_key=True)
     sha = db.Column(db.String, unique=True)
 
-    def __init__(self, form):
+    @classmethod
+    def from_form(cls, form):
+        self = cls()
+
         self.county = form.county.data
         self.region = form.region.data
         self.property_type = form.property_type.data
         key = ":".join([self.county, self.region, self.property_type])
         self.sha = sha1(key).hexdigest()
+
+        return self
 
 class UserSubscription(db.Model):
     __tablename__ = 'usersubscription'
@@ -125,16 +130,15 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = load_user(form.username.data)
-        if user.password == form.password.data:
+        if user and user.password == form.password.data:
             user.authenticated = True
             db.session.add(user)
             db.session.commit()
             login_user(user, remember=True)
             return redirect('/user/{}'.format(user.username))
-        else:
-            flash("Incorrect username or password")
-            return redirect('/login', code=303)
 
+        flash("Incorrect username or password")
+        return redirect('/login', code=303)
 
     return render_template('login.html', form=form)
 
@@ -207,11 +211,16 @@ def new_region():
 
     form = RegionForm()
     if form.is_submitted():
-        region = TargetRegion(form)
+        region = TargetRegion.from_form(form)
         subscription = UserSubscription(current_user, region)
 
         try:
             db.session.add(region)
+            db.session.commit()
+        except IntegrityError as e:
+            db.session.rollback()
+
+        try:
             db.session.add(subscription)
             db.session.commit()
         except IntegrityError as e:
