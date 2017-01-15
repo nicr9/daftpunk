@@ -47,9 +47,13 @@ class User(db.Model):
     password = db.Column(db.String)
     authenticated = db.Column(db.Boolean, default=False)
 
-    def __init__(self, form):
+    @classmethod
+    def from_form(cls, form):
+        self = cls()
         self.username = form.username.data
         self.password = form.password.data
+
+        return self
 
     def is_active(self):
         """True, as all users are active."""
@@ -121,12 +125,16 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
         user = load_user(form.username.data)
-        if not user:
+        if user.password == form.password.data:
+            user.authenticated = True
+            db.session.add(user)
+            db.session.commit()
+            login_user(user, remember=True)
+            return redirect('/user/{}'.format(user.username))
+        else:
             flash("Incorrect username or password")
             return redirect('/login', code=303)
 
-        login_user(user)
-        return redirect('/user/{}'.format(form.username.data))
 
     return render_template('login.html', form=form)
 
@@ -138,7 +146,7 @@ def new_user():
             flash("Passwords don't match!")
             return redirect('/new_user')
 
-        user = User(form)
+        user = User.from_form(form)
 
         try:
             db.session.add(user)
@@ -223,6 +231,10 @@ def new_region():
 @app.route('/signout')
 @login_required
 def signout():
+    user = current_user
+    user.authenticated = False
+    db.session.add(user)
+    db.session.commit()
     logout_user()
     return redirect('/')
 
