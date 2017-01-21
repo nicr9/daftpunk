@@ -15,8 +15,8 @@ redis = StrictRedis.from_url(redis_url)
 
 if argv[1] == "retrieve":
     client = DaftClient(redis)
-    for county in client.counties:
-        client.get_region_codes(county)
+    for county in client.update_counties():
+        client.update_regions(county)
 
 elif argv[1] == "backup":
     data = {}

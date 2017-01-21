@@ -10,13 +10,21 @@ from flask_login import login_required, LoginManager, login_user, logout_user, c
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
+from dp2.resource import County, Region
 from dp2 import PROPERTY_TYPES
 
 ## Util functions
 
-def get_choices(N):
-    choices = sorted(N.iteritems())
+def counties_dropdown(N):
+    counties = [(n.code, n.label) for n in N]
+    choices = sorted(counties, key=lambda x: x[1])
     choices.insert(0, (0, '---'))
+
+    return choices
+
+def regions_dropdown(N):
+    regions = [(n.code, n.label) for n in N]
+    choices = sorted(regions, key=lambda x: x[1])
 
     return choices
 
@@ -186,8 +194,8 @@ def user_profile(username):
     regions = TargetRegion.query.filter(TargetRegion.sha.in_(region_ids)).all()
     client = DaftClient(redis)
     data = [{
-        'county': client.get_county_label(r.county),
-        'region': client.get_region_label(r.region),
+        'county': County.from_code(redis, r.county).label,
+        'region': Region.from_code(redis, r.region).label,
         'property_type': r.property_type,
         'sha': r.sha,
         'last_scraped': r.last_scraped,
@@ -207,9 +215,8 @@ def get_regions():
     key = request.form.keys()[0]
     if key:
         client = DaftClient(redis)
-        regions = client.get_region_codes(key)
-        region_map = client.translate_regions(regions)
-        data = sorted(region_map.iteritems())
+        regions = County.from_code(redis, key).regions
+        data = regions_dropdown(regions)
         return json.dumps(data), 200
     return '[]', 400
 
@@ -242,7 +249,7 @@ def new_region():
 
         return redirect('user/{}'.format(current_user.get_id()))
 
-    form.county.choices = get_choices(client.counties)
+    form.county.choices = counties_dropdown(client.counties)
 
     return render_template('new_region.html', form=form)
 
