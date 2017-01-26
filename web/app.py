@@ -157,7 +157,7 @@ def new_user():
     if form.validate_on_submit():
         if form.password.data != form.password2.data:
             flash("Passwords don't match!")
-            return redirect('/new_user')
+            return redirect('/new_user', code=303)
 
         user = User.from_form(form)
 
@@ -167,7 +167,7 @@ def new_user():
         except IntegrityError as e:
             db.session.rollback()
             flash("That username is taken")
-            return redirect('/new_user')
+            return redirect('/new_user', code=303)
         except:
             db.session.rollback()
             raise
@@ -242,7 +242,7 @@ def new_region():
         except IntegrityError as e:
             db.session.rollback()
             flash("Duplicate region!")
-            return redirect('/new_region')
+            return redirect('/new_region', 303)
         except:
             db.session.rollback()
             raise

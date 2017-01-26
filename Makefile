@@ -154,3 +154,6 @@ clean-jobs:
 install:
 	sudo pip install -r requirements.txt
 	sudo python setup.py develop
+
+test:
+	pytest tests -v
