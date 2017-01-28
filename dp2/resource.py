@@ -34,6 +34,17 @@ class County(DaftResource):
 class Area(DaftResource):
     _type = 'areas'
 
+class RegionStats(DaftResource):
+    _type = 'regionstats'
+
+    @property
+    def url(self):
+        return self.redis.get(self.key('url'))
+
+    @url.setter
+    def url(self, value):
+        self.redis.set(self.key('url'), value)
+
 class Property(DaftResource):
     _type = 'properties'
 

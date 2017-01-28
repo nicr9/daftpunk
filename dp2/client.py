@@ -5,7 +5,7 @@ from urlparse import urlsplit, urljoin
 
 from bs4 import BeautifulSoup
 from dp2 import PROPERTY_TYPES, H_AJAX, H_COMMON, H_FORM
-from dp2.resource import County, Property
+from dp2.resource import County, RegionStats, Property
 
 
 class DaftClient(object):
@@ -91,7 +91,8 @@ class DaftClient(object):
 
         return results
 
-    def search(self, county_code, area_code, property_type):
+    def search(self, county_code, area_code, property_type, sha):
+        stats = RegionStats.from_code(self.redis, sha)
         search_source = PROPERTY_TYPES[property_type]['searchSource']
         pt_id = PROPERTY_TYPES[property_type]['pt_id']
 
@@ -123,7 +124,9 @@ class DaftClient(object):
         properties = []
         while True:
             resp = self.session.get(next_page, params=payload, headers=H_COMMON)
-            payload = None # Only the first request needs search params
+            if payload:
+                payload = None # Only the first request needs search params
+                stats.url = resp.url
 
             soup = BeautifulSoup(resp.text, "html.parser")
 

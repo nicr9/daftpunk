@@ -33,7 +33,7 @@ class DaftSearcher(object):
 
     def run(self):
         for query in self.regions:
-            for property_code in self.client.search(*query[:-1]):
+            for property_code in self.client.search(*query):
                 self.client.update_property(property_code)
             with self.pgsql.cursor() as cur:
                 cur.execute("UPDATE region SET last_scraped = NOW() WHERE sha = '{}'".format(query[-1]))

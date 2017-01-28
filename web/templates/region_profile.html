@@ -2,6 +2,6 @@
 {% block main_content %}
       <h1>{{ region['county'] }} / {{ region['area'] }} / {{ region['property_type'] }}</h1>
       <p>Last Scraped: {{ region['last_scraped'] }}</p>
-
+      <p>Daft Search: <a href='{{ region['stats'].url }}'>here</a></p>
       <hr>
 {% endblock %}

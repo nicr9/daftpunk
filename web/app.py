@@ -10,7 +10,7 @@ from flask_login import login_required, LoginManager, login_user, logout_user, c
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
-from dp2.resource import County, Area, Question
+from dp2.resource import County, Area, RegionStats, Question
 from dp2 import PROPERTY_TYPES
 
 ## Util functions
@@ -34,6 +34,7 @@ def translate_region(region):
         'area': Area.from_code(redis, region.area).label,
         'property_type': region.property_type,
         'sha': region.sha,
+        'stats': RegionStats.from_code(redis, region.sha),
         'last_scraped': region.last_scraped,
         }
 
