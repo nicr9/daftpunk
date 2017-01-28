@@ -50,6 +50,9 @@ dev-up:
 
 dev-post-up: dev-scripts-restore-cache
 
+dev-replace:
+	docker-compose up -d web
+
 dev-down:
 	docker-compose down
 
@@ -77,6 +80,12 @@ dev-scripts-flush-cache:
 
 dev-scripts-restore-cache:
 	docker-compose run scripts python cache.py restore
+
+dev-scripts-update-questions:
+	docker-compose run scripts python questions.py update
+
+dev-scripts-flush-questions:
+	docker-compose run scripts python questions.py flush
 
 # Kubernetes environment
 

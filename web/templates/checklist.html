@@ -1,0 +1,12 @@
+{% extends "logged_in.html" %}
+{% block main_content %}
+      <h1>Property viewing checklist</h1>
+      <p>A list of important things to look out for during a property viewing!</p>
+      {% for question in items %}
+      {% if question.active %}
+      <div class="checkbox">
+          <label><input type="checkbox" value="">{{ question.label }} ({{ question.score }})</label>
+      </div>
+      {% endif %}
+      {% endfor %}
+{% endblock %}

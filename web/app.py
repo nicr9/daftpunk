@@ -10,7 +10,7 @@ from flask_login import login_required, LoginManager, login_user, logout_user, c
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
-from dp2.resource import County, Region
+from dp2.resource import County, Region, Question
 from dp2 import PROPERTY_TYPES
 
 ## Util functions
@@ -252,6 +252,11 @@ def new_region():
     form.county.choices = counties_dropdown(client.counties)
 
     return render_template('new_region.html', form=form)
+
+@app.route('/checklist')
+def checklist():
+    items = Question.get_all(redis)
+    return render_template('checklist.html', items=items)
 
 @app.route('/signout')
 @login_required

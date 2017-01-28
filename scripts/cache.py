@@ -1,9 +1,10 @@
-import os
 import json
+import os
 
 from sys import argv
-from redis import StrictRedis
+
 from dp2.client import DaftClient
+from redis import StrictRedis
 
 counties_key = "dp:counties"
 all_counties = "dp:counties:*"
@@ -32,9 +33,21 @@ elif argv[1] == "backup":
         json.dump(data, outp)
 
 elif argv[1] == "flush":
-    redis.delete(counties_key)
-    redis.delete(*redis.keys(all_counties))
-    redis.delete(regions_key)
+    try:
+        redis.delete(counties_key)
+    except ResponseError:
+        pass
+
+    try:
+        redis.delete(*redis.keys(all_counties))
+    except ResponseError:
+        pass
+
+    try:
+        redis.delete(regions_key)
+    except ResponseError:
+        pass
+
 
 elif argv[1] == "restore":
     with open("./data/cache.json", 'r') as inp:

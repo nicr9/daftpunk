@@ -52,3 +52,21 @@ class Property(DaftResource):
     @address.setter
     def address(self, value):
         self.redis.hset("dp:{}".format(self._type), self.code, value)
+
+class Question(DaftResource):
+    _type = 'questions'
+
+    @property
+    def score(self):
+        return int(self.redis.get(self.key('score')))
+
+    @property
+    def active(self):
+        return self.redis.exists(self.key('active'))
+
+    @active.setter
+    def active(self, value):
+        if value:
+            self.redis.set(self.key('active'), '')
+        else:
+            self.redis.delete(self.key('active'))

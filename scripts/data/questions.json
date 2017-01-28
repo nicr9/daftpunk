@@ -1,0 +1,14 @@
+[
+    ["Convenient internet access?", 1, true],
+    ["Soundproofed walls?", 1, true],
+    ["Damp patches on walls?", -1, true],
+    ["Mould around the windows?", -1, true],
+    ["Good ventalation in rooms?", 1, true],
+    ["Preferable heating system?", 1, true],
+    ["Cracks in the wall/ceiling?", 1, true],
+    ["Solid floors?", 1, true],
+    ["Built in wardrobes?", -1, true],
+    ["Needs rewriring?", -1, true],
+    ["Nice garden?", 1, true],
+    ["Bedroom windows facing the east?", 1, true]
+]
