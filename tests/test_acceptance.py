@@ -29,7 +29,7 @@ class TestAcceptance(object):
         self.assertRedirect(resp)
 
     def create_account(self, username, passwd1, passwd2):
-        url = urljoin(self.url, '/new_user')
+        url = urljoin(self.url, '/new/user')
         resp = self.session.get(url)
         soup = BeautifulSoup(resp.text, "html.parser")
         token = soup.find(id="csrf_token")['value']
@@ -41,17 +41,17 @@ class TestAcceptance(object):
             'password2': passwd2,
             })
 
-    def add_region(self, county, region, property_type):
+    def add_region(self, county, area, property_type):
         self.ensure_account()
 
-        url = urljoin(self.url, '/new_region')
+        url = urljoin(self.url, '/new/region')
         resp = self.session.get(url)
         soup = BeautifulSoup(resp.text, "html.parser")
         token = soup.find(id="csrf_token")['value']
         return self.session.post(url, data={
             'csrf_token': token,
             'county': county,
-            'region': region,
+            'area': area,
             'property_type': property_type,
             })
 
@@ -87,7 +87,7 @@ class TestAcceptance(object):
     def test_new_user_different_passwords(self):
         resp = self.create_account(
                 'different_passwords', 'abcdefghi123', 'rstuvwxyz321')
-        self.assertRedirect(resp, '/new_user', 303)
+        self.assertRedirect(resp, '/new/user', 303)
         self.assertFlashes(resp, ["Passwords don't match!"])
 
     def test_new_user_taken_username(self):
@@ -95,7 +95,7 @@ class TestAcceptance(object):
 
         resp = self.create_account(
                 'test_user', 'abcdefghi123', 'abcdefghi123')
-        self.assertRedirect(resp, '/new_user', 303)
+        self.assertRedirect(resp, '/new/user', 303)
         self.assertFlashes(resp, ["That username is taken"])
 
     def test_new_region_success(self):
@@ -104,11 +104,11 @@ class TestAcceptance(object):
         resp = self.add_region('ct1', 260, 'Houses for sale')
         self.assertRedirect(resp, '/user/test_user')
 
-    def test_new_region_duplicate_region(self):
+    def test_new_region_duplicate(self):
         self.ensure_account()
 
         resp = self.add_region('ct1', 266, 'Houses for sale')
-        #self.assertRedirect(resp, '/new_region', [302, 303]) # TODO: We should be deleting the region entry first!
+        #self.assertRedirect(resp, '/new/region', [302, 303]) # TODO: We should be deleting the region entry first!
         resp = self.add_region('ct1', 266, 'Houses for sale')
-        self.assertRedirect(resp, '/new_region', 303)
+        self.assertRedirect(resp, '/new/region', 303)
         self.assertFlashes(resp, ["Duplicate region!"])

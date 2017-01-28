@@ -10,7 +10,7 @@ from flask_login import login_required, LoginManager, login_user, logout_user, c
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
-from dp2.resource import County, Region, Question
+from dp2.resource import County, Area, Question
 from dp2 import PROPERTY_TYPES
 
 ## Util functions
@@ -22,19 +22,19 @@ def counties_dropdown(N):
 
     return choices
 
-def regions_dropdown(N):
-    regions = [(n.code, n.label) for n in N]
-    choices = sorted(regions, key=lambda x: x[1])
+def areas_dropdown(N):
+    areas = [(n.code, n.label) for n in N]
+    choices = sorted(areas, key=lambda x: x[1])
 
     return choices
 
-def translate_region(tregion):
+def translate_region(region):
     return {
-        'county': County.from_code(redis, tregion.county).label,
-        'region': Region.from_code(redis, tregion.region).label,
-        'property_type': tregion.property_type,
-        'sha': tregion.sha,
-        'last_scraped': tregion.last_scraped,
+        'county': County.from_code(redis, region.county).label,
+        'area': Area.from_code(redis, region.area).label,
+        'property_type': region.property_type,
+        'sha': region.sha,
+        'last_scraped': region.last_scraped,
         }
 
 ## Set up flask
@@ -88,11 +88,11 @@ class User(db.Model):
         """False, as anonymous users aren't supported."""
         return False
 
-class TargetRegion(db.Model):
-    __tablename__ = 'targetregion'
+class Region(db.Model):
+    __tablename__ = 'region'
 
     county = db.Column(db.String, primary_key=True)
-    region = db.Column(db.String, primary_key=True)
+    area = db.Column(db.String, primary_key=True)
     property_type = db.Column(db.String, primary_key=True)
     sha = db.Column(db.String, unique=True)
     last_scraped = db.Column(db.DateTime, nullable=True)
@@ -102,9 +102,9 @@ class TargetRegion(db.Model):
         self = cls()
 
         self.county = form.county.data
-        self.region = form.region.data
+        self.area = form.area.data
         self.property_type = form.property_type.data
-        key = ":".join([self.county, self.region, self.property_type])
+        key = ":".join([self.county, self.area, self.property_type])
         self.sha = sha1(key).hexdigest()
 
         return self
@@ -117,7 +117,7 @@ class UserSubscription(db.Model):
     __tablename__ = 'usersubscription'
 
     username = db.Column(db.String, db.ForeignKey('user.username'), primary_key=True)
-    region = db.Column(db.String, db.ForeignKey('targetregion.sha'), primary_key=True)
+    region = db.Column(db.String, db.ForeignKey('region.sha'), primary_key=True)
 
     def __init__(self, username, region):
         self.username = username.get_id()
@@ -142,7 +142,7 @@ class NewUserForm(Form):
 
 class RegionForm(Form):
     county = SelectField('County', choices=[])
-    region = SelectField('Region', choices=[])
+    area = SelectField('Area', choices=[])
     property_type = SelectField('Property Type', choices=[(label, label) for label in PROPERTY_TYPES])
 
 ## Routes
@@ -164,13 +164,13 @@ def login():
 
     return render_template('login.html', form=form)
 
-@app.route('/new_user', methods=['GET', 'POST'])
+@app.route('/new/user', methods=['GET', 'POST'])
 def new_user():
     form = NewUserForm()
     if form.validate_on_submit():
         if form.password.data != form.password2.data:
             flash("Passwords don't match!")
-            return redirect('/new_user', code=303)
+            return redirect('/new/user', code=303)
 
         user = User.from_form(form)
 
@@ -180,7 +180,7 @@ def new_user():
         except IntegrityError as e:
             db.session.rollback()
             flash("That username is taken")
-            return redirect('/new_user', code=303)
+            return redirect('/new/user', code=303)
         except:
             db.session.rollback()
             raise
@@ -204,9 +204,9 @@ def user_profile(username):
     user = load_user(username)
     subscriptions = UserSubscription.query.filter_by(
             username=user.username).all()
-    region_ids = [sub.region for sub in subscriptions]
-    regions = TargetRegion.query.filter(
-            TargetRegion.sha.in_(region_ids)).all()
+    region_shas = [sub.region for sub in subscriptions]
+    regions = Region.query.filter(
+            Region.sha.in_(region_shas)).all()
     data = [translate_region(r) for r in regions]
     awaiting_update = any([not row['last_scraped'] for row in data])
     return render_template(
@@ -216,25 +216,25 @@ def user_profile(username):
             awaiting_update=awaiting_update
             )
 
-@app.route('/get/regions', methods=['POST'])
+@app.route('/get/areas', methods=['POST'])
 @login_required
-def get_regions():
+def get_areas():
     key = request.form.keys()[0]
     if key:
         client = DaftClient(redis)
-        regions = County.from_code(redis, key).regions
-        data = regions_dropdown(regions)
+        areas = County.from_code(redis, key).areas
+        data = areas_dropdown(areas)
         return json.dumps(data), 200
     return '[]', 400
 
-@app.route('/new_region', methods=['GET', 'POST'])
+@app.route('/new/region', methods=['GET', 'POST'])
 @login_required
 def new_region():
     client = DaftClient(redis)
 
     form = RegionForm()
     if form.is_submitted():
-        region = TargetRegion.from_form(form)
+        region = Region.from_form(form)
         subscription = UserSubscription(current_user, region)
 
         try:
@@ -249,7 +249,7 @@ def new_region():
         except IntegrityError as e:
             db.session.rollback()
             flash("Duplicate region!")
-            return redirect('/new_region', 303)
+            return redirect('/new/region', 303)
         except:
             db.session.rollback()
             raise
@@ -262,10 +262,10 @@ def new_region():
 
 @app.route('/region/<code>')
 def region_profile(code):
-    tregion = TargetRegion.query.filter(
-            TargetRegion.sha.match(code)).first()
+    region = Region.query.filter(
+            Region.sha.match(code)).first()
     return render_template(
-            'region_profile.html', region=translate_region(tregion))
+            'region_profile.html', region=translate_region(region))
 
 @app.route('/checklist')
 def checklist():

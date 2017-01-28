@@ -2,26 +2,26 @@
 {% block script %}
 <script>
     function submit_county(){
-        console.log("Loading regions...");
+        console.log("Loading areas...");
 
         var value = document.getElementById('county').value;
         $.ajax(
                 {
-                    url: '/get/regions',
+                    url: '/get/areas',
                     method: 'POST',
                     data: value,
                     success: function(data) {
-                        var regions = JSON.parse(data);
-                        for(var i=0; i < regions.length; i++) {
+                        var areas = JSON.parse(data);
+                        for(var i=0; i < areas.length; i++) {
                             var opt = document.createElement("option");
-                            opt.value=regions[i][0];
-                            opt.innerHTML = regions[i][1];
+                            opt.value=areas[i][0];
+                            opt.innerHTML = areas[i][1];
 
-                            document.getElementById('region').add(opt);
+                            document.getElementById('area').add(opt);
                         }
                     },
                     failure: function(data) {
-                        console.log("No county selected; not updating region dropdown")
+                        console.log("No county selected; not updating area dropdown")
                     },
                 }
               );
@@ -41,10 +41,10 @@
         {% endif %}
       {% endwith %}
 
-      <form method="POST" action="/new_region">
+      <form method="POST" action="/new/region">
         {{ form.csrf_token }}
         {{ form.county.label }} {{ form.county(onchange="submit_county()") }}<br>
-        {{ form.region.label }} {{ form.region() }}<br>
+        {{ form.area.label }} {{ form.area() }}<br>
         {{ form.property_type.label }} {{ form.property_type() }}<br>
         <input type="submit" value="Subscribe">
       </form>

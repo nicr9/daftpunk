@@ -27,12 +27,12 @@ class County(DaftResource):
     _type = 'counties'
 
     @property
-    def regions(self):
-        regions = self.redis.lrange(self.key(), 0 ,-1)
-        return [Region.from_code(self.redis, z) for z in regions]
+    def areas(self):
+        areas = self.redis.lrange(self.key(), 0 ,-1)
+        return [Area.from_code(self.redis, z) for z in areas]
 
-class Region(DaftResource):
-    _type = 'regions'
+class Area(DaftResource):
+    _type = 'areas'
 
 class Property(DaftResource):
     _type = 'properties'

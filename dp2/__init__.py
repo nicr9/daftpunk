@@ -1,6 +1,6 @@
 from urlparse import parse_qs, urlparse
 
-VERSION = '0.4.7'
+VERSION = '0.5.0'
 PROPERTY_TYPES = {
         'Houses for sale': {'pt_id': 1, 'searchSource': 'sale'},
         'Apartment for sale': {'pt_id': 2, 'searchSource': 'sale'},

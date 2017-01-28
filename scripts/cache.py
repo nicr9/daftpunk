@@ -9,7 +9,7 @@ from redis import StrictRedis
 counties_key = "dp:counties"
 all_counties = "dp:counties:*"
 counties_template = "dp:counties:{}"
-regions_key = "dp:regions"
+areas_key = "dp:areas"
 
 redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 redis = StrictRedis.from_url(redis_url)
@@ -17,13 +17,13 @@ redis = StrictRedis.from_url(redis_url)
 if argv[1] == "retrieve":
     client = DaftClient(redis)
     for county in client.update_counties():
-        client.update_regions(county)
+        client.update_areas(county)
 
 elif argv[1] == "backup":
     data = {}
 
     data[counties_key] = redis.hgetall(counties_key)
-    data[regions_key] = redis.hgetall(regions_key)
+    data[areas_key] = redis.hgetall(areas_key)
 
     for code in data[counties_key]:
         key = counties_template.format(code)
@@ -44,7 +44,7 @@ elif argv[1] == "flush":
         pass
 
     try:
-        redis.delete(regions_key)
+        redis.delete(areas_key)
     except ResponseError:
         pass
 
@@ -54,7 +54,7 @@ elif argv[1] == "restore":
         data = json.load(inp)
 
     redis.hmset(counties_key, data.pop(counties_key))
-    redis.hmset(regions_key, data.pop(regions_key))
+    redis.hmset(areas_key, data.pop(areas_key))
 
     # Remaining keys should be just dp:counties:*
     for key in data:

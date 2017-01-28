@@ -60,7 +60,7 @@ class DaftClient(object):
 
         return results
 
-    def update_regions(self, county_code):
+    def update_areas(self, county_code):
         key = "dp:counties:{}".format(county_code)
         payload = {
                     "cc_id": county_code,
@@ -73,9 +73,9 @@ class DaftClient(object):
         resp = self.session.post("https://daft.ie/sales/getAreas/",  data=payload, headers=H_AJAX)
 
         soup = BeautifulSoup(resp.text, "html.parser")
-        regions = soup.find_all("span", **{'class': "multi-select-item-large"})
+        areas = soup.find_all("span", **{'class': "multi-select-item-large"})
 
-        def get_region_data(r):
+        def get_area_data(r):
             try:
                 code = r.parent['for'].split('_')[-1]
                 label = re.split("\s\(\d*\)$", r.text)[0]
@@ -83,15 +83,15 @@ class DaftClient(object):
             except TypeError as e:
                 return
 
-        region_data = dict(get_region_data(r) for r in regions)
-        self.redis.hmset("dp:regions", region_data)
+        area_data = dict(get_area_data(r) for r in areas)
+        self.redis.hmset("dp:areas", area_data)
 
-        results = region_data.keys()
+        results = area_data.keys()
         self.redis.lpush(key, *results)
 
         return results
 
-    def search(self, county_code, region_code, property_type):
+    def search(self, county_code, area_code, property_type):
         search_source = PROPERTY_TYPES[property_type]['searchSource']
         pt_id = PROPERTY_TYPES[property_type]['pt_id']
 
@@ -102,7 +102,7 @@ class DaftClient(object):
                 'sale_tab_name': '',
                 's[area_type]': 'on',
                 's[college_id]': '',
-                's[a_id][]': region_code,
+                's[a_id][]': area_code,
                 's[mnp]': '',
                 's[mxp]': '',
                 's[mnb]': '',
