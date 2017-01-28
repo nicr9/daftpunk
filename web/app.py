@@ -28,6 +28,15 @@ def regions_dropdown(N):
 
     return choices
 
+def translate_region(tregion):
+    return {
+        'county': County.from_code(redis, tregion.county).label,
+        'region': Region.from_code(redis, tregion.region).label,
+        'property_type': tregion.property_type,
+        'sha': tregion.sha,
+        'last_scraped': tregion.last_scraped,
+        }
+
 ## Set up flask
 
 app = Flask(__name__)
@@ -99,6 +108,10 @@ class TargetRegion(db.Model):
         self.sha = sha1(key).hexdigest()
 
         return self
+
+    @classmethod
+    def from_sha(cls, sha):
+        self = cls()
 
 class UserSubscription(db.Model):
     __tablename__ = 'usersubscription'
@@ -189,18 +202,12 @@ def features():
 @login_required
 def user_profile(username):
     user = load_user(username)
-    subscriptions = UserSubscription.query.filter_by(username=user.username).all()
+    subscriptions = UserSubscription.query.filter_by(
+            username=user.username).all()
     region_ids = [sub.region for sub in subscriptions]
-    regions = TargetRegion.query.filter(TargetRegion.sha.in_(region_ids)).all()
-    client = DaftClient(redis)
-    data = [{
-        'county': County.from_code(redis, r.county).label,
-        'region': Region.from_code(redis, r.region).label,
-        'property_type': r.property_type,
-        'sha': r.sha,
-        'last_scraped': r.last_scraped,
-        } for r in regions]
-
+    regions = TargetRegion.query.filter(
+            TargetRegion.sha.in_(region_ids)).all()
+    data = [translate_region(r) for r in regions]
     awaiting_update = any([not row['last_scraped'] for row in data])
     return render_template(
             'user_profile.html',
@@ -252,6 +259,13 @@ def new_region():
     form.county.choices = counties_dropdown(client.counties)
 
     return render_template('new_region.html', form=form)
+
+@app.route('/region/<code>')
+def region_profile(code):
+    tregion = TargetRegion.query.filter(
+            TargetRegion.sha.match(code)).first()
+    return render_template(
+            'region_profile.html', region=translate_region(tregion))
 
 @app.route('/checklist')
 def checklist():

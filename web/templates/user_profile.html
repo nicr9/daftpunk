@@ -35,7 +35,7 @@ tr:nth-child(even) {
           </tr>
 
           {% for region in regions %}
-          <tr>
+          <tr onclick="location.href='/region/{{ region['sha'] }}';" style="cursor: pointer;">
               <td>{{ region['county'] }}</td>
               <td>{{ region['region'] }}</td>
               <td>{{ region['property_type'] }}</td>
