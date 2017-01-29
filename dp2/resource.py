@@ -47,7 +47,8 @@ class RegionStats(DaftResource):
 
     @property
     def current(self):
-        return self.redis.lrange(self.key('url'), 0, -1)
+        return [Property.from_code(self.redis, code)
+                for code in self.redis.lrange(self.key('current'), 0, -1)]
 
     @current.setter
     def current(self, value):

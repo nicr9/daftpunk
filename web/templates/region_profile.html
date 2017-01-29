@@ -1,11 +1,50 @@
 {% extends "logged_in.html" %}
+{% block script %}
+<style>
+table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+}
+
+tr:nth-child(even) {
+    background-color: #dddddd;
+}
+</style>
+{% endblock %}
 {% block main_content %}
       <h1>{{ region['county'] }} / {{ region['area'] }} / {{ region['property_type'] }}</h1>
       <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#region-meta">Region Metadata</button>
       <div id="region-meta" class="collapse">
-      <p>Last Scraped: {{ region['last_scraped'] }}</p>
-      <p>Daft Search: <a href='{{ region['stats'].url }}'>here</a></p>
-      <p>No. of Properties: {{ region['stats'].count }}</p>
+        <p>Last Scraped: {{ region['last_scraped'] }}</p>
+        <p>Daft Search: <a href='{{ region['stats'].url }}'>here</a></p>
+        <p>No. of Properties: {{ region['stats'].count }}</p>
       </div>
       <hr>
+      {% if region['stats'].count > 0 %}
+      <h3>Properties</h3>
+      <button type="button" class="btn btn-info" data-toggle="collapse" data-target="#properties-list">Property List</button>
+      <div id="properties-list" class="collapse">
+          <table>
+              <tr>
+                  <th>Address</th>
+              </tr>
+
+              {% for property in region['stats'].current %}
+              <tr onclick="location.href='/property/{{ property.code }}';" style="cursor: pointer;">
+                  <td>{{ property.label }}</td>
+              </tr>
+              {% endfor %}
+          </table>
+      </div>
+
+      {% else %}
+      <p>No properties currently available in this region.</p>
+      {% endif %}
 {% endblock %}

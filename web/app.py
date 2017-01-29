@@ -10,7 +10,7 @@ from flask_login import login_required, LoginManager, login_user, logout_user, c
 from wtforms import TextField, PasswordField, SelectField
 from flask_wtf import Form
 from dp2.client import DaftClient
-from dp2.resource import County, Area, RegionStats, Question
+from dp2.resource import County, Area, RegionStats, Question, Property
 from dp2 import PROPERTY_TYPES
 
 ## Util functions
@@ -267,6 +267,11 @@ def region_profile(code):
             Region.sha.match(code)).first()
     return render_template(
             'region_profile.html', region=translate_region(region))
+
+@app.route('/property/<code>')
+def property_profile(code):
+    prop = Property.from_code(redis, code)
+    return render_template('property_profile.html', property=prop)
 
 @app.route('/checklist')
 def checklist():

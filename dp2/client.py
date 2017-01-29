@@ -168,6 +168,6 @@ class DaftClient(object):
         resp = self.session.get(prop.url)
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        prop.address = soup.find(id="address_box").h1.text.strip()
+        prop.address = soup.find(id="address_box").h1.text.strip().encode('ascii', 'ignore')
 
         # TODO: Scrape more relevant info here!
