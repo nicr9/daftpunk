@@ -143,6 +143,7 @@ class DaftClient(object):
                 break
             next_page = urljoin("http://www.daft.ie/", href)
 
+        stats.current = properties
         return properties
 
     @property

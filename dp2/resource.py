@@ -45,6 +45,20 @@ class RegionStats(DaftResource):
     def url(self, value):
         self.redis.set(self.key('url'), value)
 
+    @property
+    def current(self):
+        return self.redis.lrange(self.key('url'), 0, -1)
+
+    @current.setter
+    def current(self, value):
+        key = self.key('current')
+        self.redis.ltrim(key, 0, len(value) - 1)
+        self.redis.lpush(key, *value)
+
+    @property
+    def count(self):
+        return self.redis.llen(self.key('current'))
+
 class Property(DaftResource):
     _type = 'properties'
 
