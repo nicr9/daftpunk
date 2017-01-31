@@ -168,6 +168,7 @@ class DaftClient(object):
         resp = self.session.get(prop.url)
         soup = BeautifulSoup(resp.text, "html.parser")
 
-        prop.address = soup.find(id="address_box").h1.text.strip().encode('ascii', 'ignore')
+        prop.address = soup.find(id="address_box").h1.text.strip()
+        prop.set_price(soup.find(id="smi-price-string").text)
 
         # TODO: Scrape more relevant info here!

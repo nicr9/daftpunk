@@ -1,3 +1,6 @@
+import re
+
+
 class DaftResource(object):
     def __init__(self, redis):
         self.redis = redis
@@ -21,7 +24,8 @@ class DaftResource(object):
 
     @property
     def label(self):
-        return self.redis.hget("dp:{}".format(self._type), self.code)
+        return self.redis.hget(
+                "dp:{}".format(self._type), self.code).decode('utf-8')
 
 class County(DaftResource):
     _type = 'counties'
@@ -53,7 +57,7 @@ class RegionStats(DaftResource):
     @current.setter
     def current(self, value):
         key = self.key('current')
-        self.redis.ltrim(key, 0, len(value) - 1)
+        self.redis.delete(key)
         self.redis.lpush(key, *value)
 
     @property
@@ -73,11 +77,40 @@ class Property(DaftResource):
 
     @property
     def address(self):
-        return self.label
+        return self.label.decode('utf-8')
 
     @address.setter
     def address(self, value):
         self.redis.hset("dp:{}".format(self._type), self.code, value)
+
+    def set_price(self, raw):
+        match = re.search(
+                r"^([\u20ac\u00a3\u0024])?([\d,.]*)(.*)?$", raw)
+
+        if match.group(0):
+            self.redis.set(self.key('price_string'), match.group(0))
+        if match.group(1):
+            self.redis.set(self.key('currency'), match.group(1))
+        if match.group(2):
+            self.redis.set(self.key('price'), match.group(2).replace(',', ''))
+        if match.group(3):
+            self.redis.set(self.key('pricing'), match.group(3))
+
+    @property
+    def price_string(self):
+        return self.redis.get(self.key('price_string')).decode('utf-8')
+
+    @property
+    def currency(self):
+        return self.redis.get(self.key('currency')).decode('utf-8')
+
+    @property
+    def price(self):
+        return int(self.redis.get(self.key('price')))
+
+    @property
+    def pricing(self):
+        return self.redis.get(self.key('pricing'))
 
 class Question(DaftResource):
     _type = 'questions'
