@@ -171,4 +171,8 @@ class DaftClient(object):
         prop.address = soup.find(id="address_box").h1.text.strip()
         prop.set_price(soup.find(id="smi-price-string").text)
 
+        ber = soup.find(**{'class':"ber-hover"})
+        if ber:
+            prop.ber = ber.find('img')['alt']
+
         # TODO: Scrape more relevant info here!

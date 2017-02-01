@@ -112,6 +112,14 @@ class Property(DaftResource):
     def pricing(self):
         return self.redis.get(self.key('pricing'))
 
+    @property
+    def ber(self):
+        return self.redis.get(self.key('ber'))
+
+    @ber.setter
+    def ber(self, value):
+        self.redis.set(self.key('ber'), value)
+
 class Question(DaftResource):
     _type = 'questions'
 
