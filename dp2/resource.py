@@ -83,6 +83,13 @@ class Property(DaftResource):
     def address(self, value):
         self.redis.hset("dp:{}".format(self._type), self.code, value)
 
+    @property
+    def timestamp():
+        if not self._timestamp:
+            self._timestamp = int(time.time())
+
+        return self._timestamp
+
     def set_price(self, raw):
         match = re.search(
                 r"^([\u20ac\u00a3\u0024])?([\d,.]*)(.*)?$", raw)
@@ -92,7 +99,9 @@ class Property(DaftResource):
         if match.group(1):
             self.redis.set(self.key('currency'), match.group(1))
         if match.group(2):
-            self.redis.set(self.key('price'), match.group(2).replace(',', ''))
+            price = match.group(2).replace(',', '')
+            self.redis.zadd(self.key('price_ts'), self.timestamp, price)
+            self.redis.set(self.key('current_price'), price)
         if match.group(3):
             self.redis.set(self.key('pricing'), match.group(3))
 
@@ -105,8 +114,8 @@ class Property(DaftResource):
         return self.redis.get(self.key('currency')).decode('utf-8')
 
     @property
-    def price(self):
-        return int(self.redis.get(self.key('price')))
+    def current_price(self):
+        return int(self.redis.get(self.key('current_price')))
 
     @property
     def pricing(self):
